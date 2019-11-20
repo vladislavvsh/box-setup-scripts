@@ -432,7 +432,7 @@ Function Install-KeePass {
 
 Write-BoxstarterMessage "Starting setup"
 
-Use-Checkpoint -Function ${Function:Enable-WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate already finished'
+Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate already finished'
 
 # disable chocolatey default confirmation behaviour (no need for --yes)
 Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features already configured'
