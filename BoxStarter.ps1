@@ -93,7 +93,6 @@ Write-Host "# Windows Subsystems/Roles/Features" -ForegroundColor Yellow
 Write-Host "####################################" -ForegroundColor Yellow
 
 choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $ChocoCachePath
-choco install wsl-ubuntu-1804 --cacheLocation $ChocoCachePath
 choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $ChocoCachePath
 choco install Containers -source windowsFeatures --cacheLocation $ChocoCachePath
 choco install TelnetClient -source windowsFeatures --cacheLocation $ChocoCachePath
