@@ -191,12 +191,12 @@ Function Install-DevFeatures {
 	Write-BoxstarterMessage "# Dev Features"
 	Write-BoxstarterMessage "####################################"
 
-	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --limitoutput
-	choco install wsl-ubuntu-1804 --limitoutput
-
 	choco install Microsoft-Hyper-V-All -source windowsFeatures --limitoutput
 	choco install Containers -source windowsFeatures --limitoutput
 	choco install TelnetClient -source windowsFeatures --limitoutput
+
+	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --limitoutput
+	choco install wsl-ubuntu-1804 --limitoutput
 }
 
 Function Install-Docker {
@@ -219,10 +219,6 @@ Function Install-Git {
 	#git.install?
 	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --limitoutput
 	choco install git-credential-manager-for-windows --limitoutput
-	choco install poshgit --limitoutput
-	choco install sourcetree --limitoutput
-
-	choco pin add -n=sourcetree
 }
 
 Function Install-VisualStudio2019 {
@@ -233,6 +229,7 @@ Function Install-VisualStudio2019 {
 	$path = "$($env:Temp)\$([guid]::NewGuid())"
 	$archive = "$($path)\master.zip"
 
+	New-Item -ItemType directory -Path $path
 	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
 	Expand-Archive -Path $archive -DestinationPath $path
 
@@ -243,7 +240,7 @@ Function Install-VisualStudio2019 {
 	choco pin add -n=visualstudio2019enterprise
 
 	Remove-Item -Path $archive
-	Remove-Item -Path $path
+	Remove-Item -Path $path -Force -Recurse
 }
 
 Function Install-VisualStudio2019Extensions {
@@ -342,6 +339,8 @@ Function Install-CoreDevApps {
 	choco install beyondcompare-integration --limitoutput
 	choco install sql-server-management-studio --limitoutput
 	choco install sysinternals --limitoutput
+	choco install sourcetree --limitoutput
+	choco install poshgit --limitoutput
 
 	choco install putty.install --limitoutput
 	choco install winscp.install --limitoutput
@@ -353,6 +352,7 @@ Function Install-CoreDevApps {
 	choco pin add -n=fiddler
 	choco pin add -n=beyondcompare
 	choco pin add -n=sql-server-management-studio
+	choco pin add -n=sourcetree
 }
 
 function Install-NodeJsAndNpmPackages {
@@ -431,7 +431,8 @@ Function Install-KeePass {
 }
 
 Write-BoxstarterMessage "Starting setup"
-WindowsUpdate
+
+Use-Checkpoint -Function ${Function:Enable-WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate already finished'
 
 # disable chocolatey default confirmation behaviour (no need for --yes)
 Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features already configured'
@@ -444,17 +445,11 @@ Write-BoxstarterMessage "Starting installs"
 
 Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
 
-if (Test-PendingReboot) { Invoke-Reboot }
-
 Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
-
-if (Test-PendingReboot) { Invoke-Reboot }
 
 Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
 
 Use-Checkpoint -Function ${Function:Install-VisualStudio2019} -CheckpointName 'VisualStudio2019' -SkipMessage 'Visual Studio 2019 is already installed'
-
-if (Test-PendingReboot) { Invoke-Reboot }
 
 Use-Checkpoint -Function ${Function:Install-VisualStudio2019Extensions} -CheckpointName 'VisualStudio2019Extensions' -SkipMessage 'Visual Studio 2019 Extensions are already installed'
 
@@ -466,13 +461,9 @@ Use-Checkpoint -Function ${Function:Install-AzureTools} -CheckpointName 'AzureTo
 
 Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
 
-if (Test-PendingReboot) { Invoke-Reboot }
-
 Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointName 'NodeJsAndNpmPackages' -SkipMessage 'NodeJs And Npm Packages are already installed'
 
 Use-Checkpoint -Function ${Function:Install-CoreApps} -CheckpointName 'CoreApps' -SkipMessage 'Core Apps are already installed'
-
-if (Test-PendingReboot) { Invoke-Reboot }
 
 Use-Checkpoint -Function ${Function:Install-Browsers} -CheckpointName 'Browsers' -SkipMessage 'Browsers are already installed'
 
