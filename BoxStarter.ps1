@@ -13,6 +13,10 @@
 #   example: Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -DisableReboots
 ###############################################################################
 
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Started" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
+
 # Workaround for nested chocolatey folders resulting in path too long error
 
 $ChocoCachePath = "C:\Temp"
@@ -23,58 +27,68 @@ New-Item -Path $ChocoCachePath -ItemType directory -Force
 Disable-UAC
 choco feature enable -n=allowGlobalConfirmation
 
-###############################################################################
-# Windows Subsystems/Roles/Features
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Windows Subsystems/Roles/Features" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures
 choco install Microsoft-Hyper-V-All -source windowsFeatures
 choco install Containers -source windowsFeatures
 choco install TelnetClient -source windowsFeatures
 
-###############################################################################
-# Docker
-###############################################################################
+RefreshEnv
+
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Docker" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install docker-desktop --cacheLocation $ChocoCachePath
 choco install docker-compose --cacheLocation $ChocoCachePath
 
-choco pin add -n=docker-for-windows
+RefreshEnv
+
+choco pin add -n=docker-desktop
 choco pin add -n=docker-compose
 
-###############################################################################
-# PowerShell
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# PowerShell" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 Get-PackageProvider -Name NuGet -ForceBootstrap
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name AzureRM -Scope AllUsers
 Install-Module -Name Azure -Scope AllUsers -AllowClobber
 
-###############################################################################
-# Git
-###############################################################################
+RefreshEnv
+
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Git" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install git.install --params="'/GitOnlyOnPath /WindowsTerminal'" --cacheLocation $ChocoCachePath
 choco install git-credential-manager-for-windows  --cacheLocation $ChocoCachePath
 choco install poshgit --cacheLocation $ChocoCachePath
 choco install sourcetree --cacheLocation $ChocoCachePath
 
+RefreshEnv
+
 choco pin add -n=sourcetree
 
-###############################################################################
-# Browsers
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Browsers" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install firefox --cacheLocation $ChocoCachePath
 choco install tor-browser --cacheLocation $ChocoCachePath
 
+RefreshEnv
+
 choco pin add -n=firefox
 choco pin add -n=tor-browser
 
-###############################################################################
-# KeePass
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# KeePass" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install keepass.install --cacheLocation $ChocoCachePath
 choco install keepass-plugin-keeagent --cacheLocation $ChocoCachePath
@@ -84,31 +98,37 @@ choco install keepass-plugin-rdp --cacheLocation $ChocoCachePath
 choco install keepass-rpc --cacheLocation $ChocoCachePath
 choco install keepass-plugin-enhancedentryview --cacheLocation $ChocoCachePath
 
-###############################################################################
-# Messengers
-###############################################################################
+RefreshEnv
+
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Messengers" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install skype --cacheLocation $ChocoCachePath
 choco install slack --cacheLocation $ChocoCachePath
 choco install telegram.install --cacheLocation $ChocoCachePath
 choco install whatsapp --cacheLocation $ChocoCachePath
 
+RefreshEnv
+
 choco pin add -n=skype
 choco pin add -n=telegram.install
 
-###############################################################################
-# Azure
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Azure" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install azure-cli --cacheLocation $ChocoCachePath
 choco install azcopy --cacheLocation $ChocoCachePath
 choco install microsoftazurestorageexplorer --cacheLocation $ChocoCachePath
 
+RefreshEnv
+
 choco pin add -n=microsoftazurestorageexplorer
 
-###############################################################################
-# Apps
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Apps" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install chocolatey --cacheLocation $ChocoCachePath
 choco install chocolateygui --cacheLocation $ChocoCachePath
@@ -140,6 +160,8 @@ choco install wget --cacheLocation $ChocoCachePath
 choco install postman --cacheLocation $ChocoCachePath
 choco install openvpn --params "'/SELECT_LAUNCH=0'" --cacheLocation $ChocoCachePath
 
+RefreshEnv
+
 choco pin add -n=notepadplusplus.install
 choco pin add -n=vlc
 choco pin add -n=paint.net
@@ -147,13 +169,13 @@ choco pin add -n=fiddler
 choco pin add -n=beyondcompare
 choco pin add -n=sql-server-management-studio
 
-###############################################################################
-# Visual Studio Code
-###############################################################################
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Visual Studio Code" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 choco install vscode.install --params="'/NoDesktopIcon'" --cacheLocation $ChocoCachePath
 
-choco pin add -n=vscode.install
+RefreshEnv
 
 code --install-extension alexanderte.dainty-material-theme-palenight-vscode
 code --install-extension pkief.material-icon-theme
@@ -172,9 +194,11 @@ code --install-extension shardulm94.trailing-spaces
 code --install-extension dbaeumer.vscode-eslint
 code --install-extension ms-vscode.vscode-typescript-tslint-plugin
 
-###############################################################################
-# Visual Studio 2019
-###############################################################################
+choco pin add -n=vscode.install
+
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Visual Studio 2019" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 # Get configs
 
@@ -232,7 +256,11 @@ Function DownloadAndInstallExt($packageName) {
 
 choco install visualstudio2019enterprise --params="'--locale en-US --lang en-US --passive --norestart --wait --config $($path)\configs\.vsconfig'"
 
+RefreshEnv
+
 choco install resharper-platform --cacheLocation $ChocoCachePath
+
+RefreshEnv
 
 choco pin add -n=resharper-platform
 
@@ -258,9 +286,11 @@ DownloadAndInstallExt("SergeyVlasov.VisualCommander")
 DownloadAndInstallExt("PavelSamokha.TargetFrameworkMigrator")
 DownloadAndInstallExt("NikolayBalakin.Outputenhancer")
 
-###############################################################################
-# Clean up
-###############################################################################
+RefreshEnv
+
+Write-Host "###############################################################################" -BackgroundColor Yellow
+Write-Host "# Clean up" -BackgroundColor Yellow
+Write-Host "###############################################################################" -BackgroundColor Yellow
 
 # Clean up the cache directory
 
