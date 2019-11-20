@@ -13,9 +13,9 @@
 #   example: Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -DisableReboots
 ###############################################################################
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Started" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Started" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 # Workaround for nested chocolatey folders resulting in path too long error
 
@@ -27,9 +27,9 @@ New-Item -Path $ChocoCachePath -ItemType directory -Force
 Disable-UAC
 choco feature enable -n=allowGlobalConfirmation
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Windows Subsystems/Roles/Features" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Windows Subsystems/Roles/Features" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures
 choco install Microsoft-Hyper-V-All -source windowsFeatures
@@ -38,9 +38,9 @@ choco install TelnetClient -source windowsFeatures
 
 RefreshEnv
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Docker" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Docker" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install docker-desktop --cacheLocation $ChocoCachePath
 choco install docker-compose --cacheLocation $ChocoCachePath
@@ -50,9 +50,9 @@ RefreshEnv
 choco pin add -n=docker-desktop
 choco pin add -n=docker-compose
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# PowerShell" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# PowerShell" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 Get-PackageProvider -Name NuGet -ForceBootstrap
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -61,9 +61,9 @@ Install-Module -Name Azure -Scope AllUsers -AllowClobber
 
 RefreshEnv
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Git" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Git" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install git.install --params="'/GitOnlyOnPath /WindowsTerminal'" --cacheLocation $ChocoCachePath
 choco install git-credential-manager-for-windows  --cacheLocation $ChocoCachePath
@@ -74,9 +74,9 @@ RefreshEnv
 
 choco pin add -n=sourcetree
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Browsers" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Browsers" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install firefox --cacheLocation $ChocoCachePath
 choco install tor-browser --cacheLocation $ChocoCachePath
@@ -86,9 +86,9 @@ RefreshEnv
 choco pin add -n=firefox
 choco pin add -n=tor-browser
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# KeePass" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# KeePass" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install keepass.install --cacheLocation $ChocoCachePath
 choco install keepass-plugin-keeagent --cacheLocation $ChocoCachePath
@@ -100,9 +100,9 @@ choco install keepass-plugin-enhancedentryview --cacheLocation $ChocoCachePath
 
 RefreshEnv
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Messengers" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Messengers" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install skype --cacheLocation $ChocoCachePath
 choco install slack --cacheLocation $ChocoCachePath
@@ -114,9 +114,9 @@ RefreshEnv
 choco pin add -n=skype
 choco pin add -n=telegram.install
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Azure" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Azure" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install azure-cli --cacheLocation $ChocoCachePath
 choco install azcopy --cacheLocation $ChocoCachePath
@@ -126,9 +126,9 @@ RefreshEnv
 
 choco pin add -n=microsoftazurestorageexplorer
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Apps" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Apps" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install chocolatey --cacheLocation $ChocoCachePath
 choco install chocolateygui --cacheLocation $ChocoCachePath
@@ -169,9 +169,9 @@ choco pin add -n=fiddler
 choco pin add -n=beyondcompare
 choco pin add -n=sql-server-management-studio
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Visual Studio Code" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Visual Studio Code" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 choco install vscode.install --params="'/NoDesktopIcon'" --cacheLocation $ChocoCachePath
 
@@ -196,9 +196,9 @@ code --install-extension ms-vscode.vscode-typescript-tslint-plugin
 
 choco pin add -n=vscode.install
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Visual Studio 2019" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Visual Studio 2019" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 # Get configs
 
@@ -288,9 +288,9 @@ DownloadAndInstallExt("NikolayBalakin.Outputenhancer")
 
 RefreshEnv
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Clean up" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Clean up" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
 
 # Clean up the cache directory
 
@@ -303,6 +303,6 @@ Enable-MicrosoftUpdate
 Install-WindowsUpdate -acceptEula
 Enable-UAC
 
-Write-Host "###############################################################################" -ForegroundColor Yellow
-Write-Host "# Finished" -BackgroundColor Yellow
-Write-Host "###############################################################################" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
+Write-Host "# Finished" -ForegroundColor Yellow
+Write-Host "####################################" -ForegroundColor Yellow
