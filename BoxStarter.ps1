@@ -103,6 +103,8 @@ function Update-Path {
 Function ConvertTo-NormalHTML {
     param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]$HTML)
 
+	Add-Type -Path C:\Temp\Microsoft.mshtml.dll
+
     $NormalHTML = New-Object -Com "HTMLFile"
     $NormalHTML.IHTMLDocument2_write($HTML.RawContent)
     return $NormalHTML
@@ -149,14 +151,10 @@ Function Vs2019DownloadAndInstallExt($packageName) {
 	Write-BoxstarterMessage "Installation of $($packageName) complete!"
 }
 
-Function Install-WindowsUpdate {
+Function WindowsUpdate {
     if (Test-Path env:\BoxStarter:SkipWindowsUpdate) {
         return
     }
-
-	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Windows Update"
-	Write-BoxstarterMessage "####################################"
 
     Enable-MicrosoftUpdate
     Install-WindowsUpdate -AcceptEula
@@ -433,7 +431,7 @@ Function Install-KeePass {
 }
 
 Write-BoxstarterMessage "Starting setup"
-Install-WindowsUpdate
+WindowsUpdate
 
 # disable chocolatey default confirmation behaviour (no need for --yes)
 Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features already configured'
@@ -498,7 +496,7 @@ Update-Path
 
 # rerun windows update after we have installed everything
 Write-BoxstarterMessage "Windows update..."
-Install-WindowsUpdate
+WindowsUpdate
 
 Clear-Checkpoints
 
