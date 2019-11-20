@@ -1,17 +1,104 @@
 ###############################################################################
-# https://gist.github.com/ghostinthewires/033276015ba9d58d1f162e7fd47cdbd3
-# https://gist.github.com/KZeronimo/3dd360bece3341a322335469a0a813ea
+#
 # https://github.com/JonCubed/boxstarter.git
 #
 # Description: Boxstarter Script
 #
 # Install boxstarter:
+#
+# 	Set-ExecutionPolicy RemoteSigned
 #	. { iwr -useb https://boxstarter.org/bootstrapper.ps1 } | iex; Get-Boxstarter -Force
+#
 # NOTE the "." above is required.
 #
 # Run this boxstarter by calling the following from **elevated** powershell:
-#   example: Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -DisableReboots
+#
+#	Add-Type -Path C:\Program Files (x86)\Microsoft.NET\Primary Interop Assemblies\Microsoft.mshtml.dll
+#	$cred = Get-Credential
+# 	Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -Credential $cred –Force
+#
 ###############################################################################
+
+$Boxstarter.RebootOk = $true # Allow reboots
+$Boxstarter.NoPassword = $false # machine has login password
+$Boxstarter.AutoLogin = $true # Encrypt and temp store password for auto-logins after reboot
+
+$checkpointPrefix = 'BoxStarter:Checkpoint:'
+
+Function Get-CheckpointName {
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $CheckpointName
+    )
+    return "$checkpointPrefix$CheckpointName"
+}
+
+Function Set-Checkpoint {
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $CheckpointName,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $CheckpointValue
+    )
+
+    $key = Get-CheckpointName $CheckpointName
+    [Environment]::SetEnvironmentVariable($key, $CheckpointValue, "Machine") # for reboots
+    [Environment]::SetEnvironmentVariable($key, $CheckpointValue, "Process") # for right now
+}
+
+Function Get-Checkpoint {
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $CheckpointName
+    )
+
+    $key = Get-CheckpointName $CheckpointName
+    [Environment]::GetEnvironmentVariable($key, "Process")
+}
+
+Function Clear-Checkpoints {
+    $checkpointMarkers = Get-ChildItem Env: | Where-Object { $_.name -like "$checkpointPrefix*" } | Select-Object -ExpandProperty name
+    foreach ($checkpointMarker in $checkpointMarkers) {
+        [Environment]::SetEnvironmentVariable($checkpointMarker, '', "Machine")
+        [Environment]::SetEnvironmentVariable($checkpointMarker, '', "Process")
+    }
+}
+
+Function Use-Checkpoint {
+    param(
+        [string]
+        $CheckpointName,
+
+        [string]
+        $SkipMessage,
+
+        [scriptblock]
+        $Function
+    )
+
+    $checkpoint = Get-Checkpoint -CheckpointName $CheckpointName
+
+    if (-not $checkpoint) {
+        $Function.Invoke($Args)
+
+        Set-Checkpoint -CheckpointName $CheckpointName -CheckpointValue 1
+    }
+    else {
+        Write-BoxstarterMessage $SkipMessage
+    }
+}
+
+function Update-Path {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+}
 
 Function ConvertTo-NormalHTML {
     param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]$HTML)
@@ -21,7 +108,7 @@ Function ConvertTo-NormalHTML {
     return $NormalHTML
 }
 
-Function VsDownloadAndInstallExt($packageName) {
+Function Vs2019DownloadAndInstallExt($packageName) {
 	$ErrorActionPreference = "Stop"
     $vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
 	$vsixLocation = "$($env:Temp)\$([guid]::NewGuid()).vsix"
@@ -29,11 +116,11 @@ Function VsDownloadAndInstallExt($packageName) {
 	$baseHostName = "marketplace.visualstudio.com"
 	$uri = "$($baseProtocol)//$($baseHostName)/items?itemName=$($packageName)"
 
-	Write-Host "Grabbing VSIX extension page at $($uri)"
+	Write-BoxstarterMessage "Grabbing VSIX extension page at $($uri)"
     $content = Invoke-WebRequest -Uri $uri -UseBasicParsing
     $parsedHtml = ConvertTo-NormalHTML -HTML $content
 
-	Write-Host "Attempting to find package download url..."
+	Write-BoxstarterMessage "Attempting to find package download url..."
 	$anchors = $parsedHtml.getElementsByTagName("a") | Where-Object {$_.getAttributeNode("class").Value -eq "install-button-container"}
 	if (-Not $anchors) {
 		Write-Error "Could not find download anchor tag on the Visual Studio Extensions page."
@@ -44,278 +131,375 @@ Function VsDownloadAndInstallExt($packageName) {
 	$anchor.protocol = $baseProtocol
 	$anchor.hostname = $baseHostName
 
-    Write-Host "Found $($anchor.href). Downloading..."
+    Write-BoxstarterMessage "Found $($anchor.href). Downloading..."
 	Invoke-WebRequest $anchor.href -OutFile $vsixLocation
 
 	if (-Not (Test-Path $vsixLocation)) {
-		Write-Error "Downloaded VSIX file could not be located."
+		Write-BoxstarterMessage "Downloaded VSIX file could not be located."
 		Exit 1
 	}
 
-    Write-Host "Done."
-	Write-Host "Installing $($packageName)..."
+    Write-BoxstarterMessage "Done."
+	Write-BoxstarterMessage "Installing $($packageName)..."
 	Start-Process -Filepath $vsixInstaller -ArgumentList "/q /a $($vsixLocation)" -Wait
 
-    Write-Host "Done."
-	Write-Host "Cleanup..."
+    Write-BoxstarterMessage "Done."
+	Write-BoxstarterMessage "Cleanup..."
 	Remove-Item $vsixLocation
-	Write-Host "Installation of $($packageName) complete!"
+	Write-BoxstarterMessage "Installation of $($packageName) complete!"
 }
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Started" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+Function Install-WindowsUpdate {
+    if (Test-Path env:\BoxStarter:SkipWindowsUpdate) {
+        return
+    }
 
-# Workaround for nested chocolatey folders resulting in path too long error
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Windows Update"
+	Write-BoxstarterMessage "####################################"
 
-$ChocoCachePath = "C:\Temp"
-New-Item -Path $ChocoCachePath -ItemType directory -Force
-
-# Temporary
-
-Disable-UAC
-choco feature enable -n=allowGlobalConfirmation
-
-# Get configs
-
-$path = "c:\_scripts"
-if (Test-Path -Path $path) {
-    Remove-Item -Path $path -Recurse
+    Enable-MicrosoftUpdate
+    Install-WindowsUpdate -AcceptEula
+    #if (Test-PendingReboot) { Invoke-Reboot }
 }
-Invoke-WebRequest  https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile C:\master.zip
-Expand-Archive -Path C:\master.zip -DestinationPath $path
-Move-Item (Join-Path $path 'box-setup-scripts-master\*') $path
-Remove-Item -Path (Join-Path $path 'box-setup-scripts-master')
-Remove-Item -Path C:\master.zip
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Windows Subsystems/Roles/Features" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+function Enable-ChocolateyFeatures {
+    choco feature enable --name=allowGlobalConfirmation
+}
 
-choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $ChocoCachePath
-choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $ChocoCachePath
-choco install Containers -source windowsFeatures --cacheLocation $ChocoCachePath
-choco install TelnetClient -source windowsFeatures --cacheLocation $ChocoCachePath
+function Disable-ChocolateyFeatures {
+    choco feature disable --name=allowGlobalConfirmation
+}
 
-RefreshEnv
+function Set-BaseSettings {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Base Settings"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Docker" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+    Update-ExecutionPolicy -Policy Unrestricted
+}
 
-choco install docker-desktop --cacheLocation $ChocoCachePath
-choco install docker-compose --cacheLocation $ChocoCachePath
+Function SetUp-PowerShell {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# PowerShell"
+	Write-BoxstarterMessage "####################################"
 
-RefreshEnv
+	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+	Set-PSRepository -Name PSGallery -InstallationPolicy 'Trusted'
+}
 
-choco pin add -n="docker-desktop"
-choco pin add -n="docker-compose"
+Function Install-DevFeatures {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Dev Features"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# PowerShell" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --limitoutput
+	choco install wsl-ubuntu-1804 --limitoutput
 
-Get-PackageProvider -Name NuGet -ForceBootstrap
-Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module -Name AzureRM -Scope AllUsers
-Install-Module -Name Azure -Scope AllUsers -AllowClobber
+	choco install Microsoft-Hyper-V-All -source windowsFeatures --limitoutput
+	choco install Containers -source windowsFeatures --limitoutput
+	choco install TelnetClient -source windowsFeatures --limitoutput
+}
 
-RefreshEnv
+Function Install-Docker {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Docker"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Git" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	choco install docker-desktop --limitoutput
+	choco install docker-compose --limitoutput
 
-choco install git.install --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $ChocoCachePath
+	choco pin add -n=docker-desktop
+	choco pin add -n=docker-compose
+}
 
-RefreshEnv
+Function Install-Git {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Git"
+	Write-BoxstarterMessage "####################################"
 
-choco install git-credential-manager-for-windows  --cacheLocation $ChocoCachePath
-choco install poshgit --cacheLocation $ChocoCachePath
-choco install sourcetree --cacheLocation $ChocoCachePath
+	#git.install?
+	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --limitoutput
+	choco install git-credential-manager-for-windows --limitoutput
+	choco install poshgit --limitoutput
+	choco install sourcetree --limitoutput
 
-RefreshEnv
+	choco pin add -n=sourcetree
+}
 
-choco pin add -n="sourcetree"
+Function Install-VisualStudio2019 {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Visual Studio 2019"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Visual Studio 2019" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	$path = "$($env:Temp)\$([guid]::NewGuid())"
+	$archive = "$($path)\master.zip"
 
-choco install visualstudio2019enterprise --params="--locale en-US --passive --norestart --wait --config $($path)\configs\.vsconfig"
+	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
+	Expand-Archive -Path $archive -DestinationPath $path
 
-RefreshEnv
+	Move-Item (Join-Path $path 'box-setup-scripts-master\*') $path
+	Remove-Item -Path (Join-Path $path 'box-setup-scripts-master')
 
-choco install resharper-platform --cacheLocation $ChocoCachePath
+	choco install visualstudio2019enterprise --params="--locale en-US --passive --norestart --wait --config $($path)\configs\.vsconfig"
+	choco pin add -n=visualstudio2019enterprise
 
-RefreshEnv
+	Remove-Item -Path $archive
+	Remove-Item -Path $path
+}
 
-choco pin add -n="resharper-platform"
+Function Install-VisualStudio2019Extensions {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Visual Studio 2019 Extensions"
+	Write-BoxstarterMessage "####################################"
 
-VsDownloadAndInstallExt("MadsKristensen.AddNewFile")
-VsDownloadAndInstallExt("MadsKristensen.TrailingWhitespaceVisualizer")
-VsDownloadAndInstallExt("MadsKristensen.WebPackTaskRunner")
-VsDownloadAndInstallExt("MadsKristensen.NPMTaskRunner")
-VsDownloadAndInstallExt("MadsKristensen.PackageInstaller")
-VsDownloadAndInstallExt("MadsKristensen.YarnInstaller")
-VsDownloadAndInstallExt("MadsKristensen.DummyTextGenerator")
-VsDownloadAndInstallExt("MadsKristensen.MarkdownEditor")
-VsDownloadAndInstallExt("MadsKristensen.ShowSelectionLength")
+	choco install resharper-platform --limitoutput
 
-VsDownloadAndInstallExt("VisualStudioPlatformTeam.PowerCommandsforVisualStudio")
-VsDownloadAndInstallExt("VisualStudioPlatformTeam.ProductivityPowerPack2017")
-VsDownloadAndInstallExt("VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor")
-VsDownloadAndInstallExt("EWoodruff.VisualStudioSpellCheckerVS2017andLater")
-VsDownloadAndInstallExt("TomasRestrepo.Viasfora")
-VsDownloadAndInstallExt("josefpihrt.Roslynator2019")
-VsDownloadAndInstallExt("SonarSource.SonarLintforVisualStudio2019")
-VsDownloadAndInstallExt("TomEnglert.ResXManager")
-VsDownloadAndInstallExt("SergeyVlasov.VisualCommander")
-VsDownloadAndInstallExt("PavelSamokha.TargetFrameworkMigrator")
-VsDownloadAndInstallExt("NikolayBalakin.Outputenhancer")
+	choco pin add -n=resharper-platform
 
-RefreshEnv
+	Vs2019DownloadAndInstallExt("MadsKristensen.AddNewFile")
+	Vs2019DownloadAndInstallExt("MadsKristensen.TrailingWhitespaceVisualizer")
+	Vs2019DownloadAndInstallExt("MadsKristensen.WebPackTaskRunner")
+	Vs2019DownloadAndInstallExt("MadsKristensen.NPMTaskRunner")
+	Vs2019DownloadAndInstallExt("MadsKristensen.PackageInstaller")
+	Vs2019DownloadAndInstallExt("MadsKristensen.YarnInstaller")
+	Vs2019DownloadAndInstallExt("MadsKristensen.DummyTextGenerator")
+	Vs2019DownloadAndInstallExt("MadsKristensen.MarkdownEditor")
+	Vs2019DownloadAndInstallExt("MadsKristensen.ShowSelectionLength")
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Visual Studio Code" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.PowerCommandsforVisualStudio")
+	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.ProductivityPowerPack2017")
+	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor")
+	Vs2019DownloadAndInstallExt("EWoodruff.VisualStudioSpellCheckerVS2017andLater")
+	Vs2019DownloadAndInstallExt("TomasRestrepo.Viasfora")
+	Vs2019DownloadAndInstallExt("josefpihrt.Roslynator2019")
+	Vs2019DownloadAndInstallExt("SonarSource.SonarLintforVisualStudio2019")
+	Vs2019DownloadAndInstallExt("TomEnglert.ResXManager")
+	Vs2019DownloadAndInstallExt("SergeyVlasov.VisualCommander")
+	Vs2019DownloadAndInstallExt("PavelSamokha.TargetFrameworkMigrator")
+	Vs2019DownloadAndInstallExt("NikolayBalakin.Outputenhancer")
+}
 
-choco install vscode.install --params="/NoDesktopIcon" --cacheLocation $ChocoCachePath
+Function Install-VisualStudioCode  {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Visual Studio Code"
+	Write-BoxstarterMessage "####################################"
 
-RefreshEnv
+	#vscode.install?
+	choco install vscode --params="/NoDesktopIcon" --limitoutput
 
-code --install-extension alexanderte.dainty-material-theme-palenight-vscode
-code --install-extension pkief.material-icon-theme
-code --install-extension ms-vscode.csharp
-code --install-extension ms-vscode.powershell
-code --install-extension ms-vscode.azurecli
-code --install-extension ms-mssql.mssql
-code --install-extension ms-vscode-remote.remote-containers
-code --install-extension ms-vscode-remote.remote-ssh
-code --install-extension ms-vscode-remote.remote-ssh-edit
-code --install-extension ms-vscode-remote.remote-wsl
-code --install-extension ms-vscode-remote.vscode-remote-extensionpack
-code --install-extension ms-azuretools.vscode-docker
-code --install-extension humao.rest-client
-code --install-extension shardulm94.trailing-spaces
-code --install-extension dbaeumer.vscode-eslint
-code --install-extension ms-vscode.vscode-typescript-tslint-plugin
+	choco pin add -n=vscode
 
-choco pin add -n="vscode.install"
+	Update-Path
+}
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Azure" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+Function Install-VSCodeExtensions {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Visual Studio Code Extensions"
+	Write-BoxstarterMessage "####################################"
 
-choco install azure-cli --cacheLocation $ChocoCachePath
-choco install azcopy --cacheLocation $ChocoCachePath
-choco install microsoftazurestorageexplorer --cacheLocation $ChocoCachePath
+    # need to launch vscode so user folders are created as we can install extensions
+	$process = Start-Process code -PassThru
+	Start-Sleep -s 10
+	$process.Close()
 
-RefreshEnv
+	code --install-extension alexanderte.dainty-material-theme-palenight-vscode
+	code --install-extension pkief.material-icon-theme
+	code --install-extension ms-vscode.csharp
+	code --install-extension ms-vscode.powershell
+	code --install-extension ms-vscode.azurecli
+	code --install-extension ms-mssql.mssql
+	code --install-extension ms-vscode-remote.remote-containers
+	code --install-extension ms-vscode-remote.remote-ssh
+	code --install-extension ms-vscode-remote.remote-ssh-edit
+	code --install-extension ms-vscode-remote.remote-wsl
+	code --install-extension ms-vscode-remote.vscode-remote-extensionpack
+	code --install-extension ms-azuretools.vscode-docker
+	code --install-extension humao.rest-client
+	code --install-extension shardulm94.trailing-spaces
+	code --install-extension dbaeumer.vscode-eslint
+	code --install-extension ms-vscode.vscode-typescript-tslint-plugin
+}
 
-choco pin add -n="microsoftazurestorageexplorer"
+Function Install-AzureTools {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Azure Tools"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Apps" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	Install-Module -Name AzureRM -Scope AllUsers
+	Install-Module -Name Azure -Scope AllUsers -AllowClobber
+	choco install azure-cli --limitoutput
+	choco install microsoftazurestorageexplorer --limitoutput
 
-choco install chocolateygui --cacheLocation $ChocoCachePath
-choco install 7zip.install --cacheLocation $ChocoCachePath
-choco install notepadplusplus.install --cacheLocation $ChocoCachePath
-choco install vlc --cacheLocation $ChocoCachePath
-choco install paint.net --cacheLocation $ChocoCachePath
-choco install adobereader --cacheLocation $ChocoCachePath
-choco install dropbox --cacheLocation $ChocoCachePath
-choco install caffeine --cacheLocation $ChocoCachePath
+	choco pin add -n=microsoftazurestorageexplorer
+}
 
-choco install sharex --cacheLocation $ChocoCachePath
-choco install ffmpeg --cacheLocation $ChocoCachePath
-choco install rufus --cacheLocation $ChocoCachePath
+Function Install-CoreDevApps {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Core Dev Apps"
+	Write-BoxstarterMessage "####################################"
 
-choco install nodejs-lts --cacheLocation $ChocoCachePath
-choco install yarn --cacheLocation $ChocoCachePath
+	choco install fiddler --limitoutput
+	choco install beyondcompare --limitoutput
+	choco install beyondcompare-integration --limitoutput
+	choco install sql-server-management-studio --limitoutput
+	choco install sysinternals --limitoutput
 
-choco install microsoft-windows-terminal --cacheLocation $ChocoCachePath
-choco install fiddler --cacheLocation $ChocoCachePath
-choco install beyondcompare --cacheLocation $ChocoCachePath
-choco install beyondcompare-integration --cacheLocation $ChocoCachePath
-choco install sql-server-management-studio --cacheLocation $ChocoCachePath
-choco install sysinternals --cacheLocation $ChocoCachePath
+	choco install putty.install --limitoutput
+	choco install winscp.install --limitoutput
+	choco install curl --limitoutput
+	choco install wget --limitoutput
+	choco install postman --limitoutput
+	choco install openvpn --params "/SELECT_LAUNCH=0" --limitoutput
 
-choco install putty.install --cacheLocation $ChocoCachePath
-choco install winscp.install --cacheLocation $ChocoCachePath
-choco install curl --cacheLocation $ChocoCachePath
-choco install wget --cacheLocation $ChocoCachePath
-choco install postman --cacheLocation $ChocoCachePath
-choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $ChocoCachePath
+	choco pin add -n=fiddler
+	choco pin add -n=beyondcompare
+	choco pin add -n=sql-server-management-studio
+}
 
-RefreshEnv
+function Install-NodeJsAndNpmPackages {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# NodeJs and Npm Packages"
+	Write-BoxstarterMessage "####################################"
 
-choco pin add -n="notepadplusplus.install"
-choco pin add -n="vlc"
-choco pin add -n="paint.net"
-choco pin add -n="fiddler"
-choco pin add -n="beyondcompare"
-choco pin add -n="sql-server-management-studio"
+	choco install nodejs-lts --limitoutput
+    npm install -g typescript
+    npm install -g yarn
+}
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Messengers" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+Function Install-CoreApps {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Core Apps"
+	Write-BoxstarterMessage "####################################"
 
-choco install skype --cacheLocation $ChocoCachePath
-choco install slack --cacheLocation $ChocoCachePath
-choco install telegram.install --cacheLocation $ChocoCachePath
-choco install whatsapp --cacheLocation $ChocoCachePath
+	choco install chocolateygui --limitoutput
+	choco install microsoft-windows-terminal --limitoutput
+	choco install 7zip.install --limitoutput
+	choco install vlc --limitoutput
+	choco install paint.net --limitoutput
+	choco install adobereader --limitoutput
+	choco install dropbox --limitoutput
+	choco install sharex --limitoutput
+	choco install ffmpeg --limitoutput
+	choco install rufus --limitoutput
+	choco install notepadplusplus.install --limitoutput
+	choco install caffeine --limitoutput
 
-RefreshEnv
+	choco pin add -n=vlc
+	choco pin add -n="paint.net"
+	choco pin add -n=dropbox
+	choco pin add -n=sharex
+	choco pin add -n="notepadplusplus.install"
+}
 
-choco pin add -n="skype"
-choco pin add -n="telegram.install"
+Function Install-Browsers {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Browsers"
+	Write-BoxstarterMessage "####################################"
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Browsers" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	choco install firefox --limitoutput
+	choco install tor-browser --limitoutput
 
-choco install firefox --cacheLocation $ChocoCachePath
-choco install tor-browser --cacheLocation $ChocoCachePath
+	choco pin add -n=firefox
+	choco pin add -n=tor-browser
+}
 
-RefreshEnv
+Function Install-Messengers {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Messengers"
+	Write-BoxstarterMessage "####################################"
 
-choco pin add -n="firefox"
-choco pin add -n="tor-browser"
+	choco install skype --limitoutput
+	choco install slack --limitoutput
+	choco install telegram.install --limitoutput
+	choco install whatsapp --limitoutput
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# KeePass" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+	choco pin add -n=skype
+	choco pin add -n="telegram.install"
+}
 
-choco install keepass.install --cacheLocation $ChocoCachePath
+Function Install-KeePass {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# KeePass"
+	Write-BoxstarterMessage "####################################"
 
-RefreshEnv
+	choco install keepass.install --limitoutput
+	choco install keepass-plugin-keeagent --limitoutput
+	choco install keepass-plugin-keeanywhere --limitoutput
+	choco install keepass-keepasshttp --limitoutput
+	choco install keepass-plugin-rdp --limitoutput
+	choco install keepass-rpc --limitoutput
+	choco install keepass-plugin-enhancedentryview --limitoutput
+}
 
-choco install keepass-plugin-keeagent --cacheLocation $ChocoCachePath
-choco install keepass-plugin-keeanywhere --cacheLocation $ChocoCachePath
-choco install keepass-keepasshttp --cacheLocation $ChocoCachePath
-choco install keepass-plugin-rdp --cacheLocation $ChocoCachePath
-choco install keepass-rpc --cacheLocation $ChocoCachePath
-choco install keepass-plugin-enhancedentryview --cacheLocation $ChocoCachePath
+Write-BoxstarterMessage "Starting setup"
+Install-WindowsUpdate
 
-RefreshEnv
+# disable chocolatey default confirmation behaviour (no need for --yes)
+Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features already configured'
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Clean up" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+Use-Checkpoint -Function ${Function:Set-BaseSettings} -CheckpointName 'BaseSettings' -SkipMessage 'Base settings are already configured'
 
-# Clean up the cache directory
+Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
 
-Remove-Item $ChocoCachePath -Recurse
+Write-BoxstarterMessage "Starting installs"
 
-# Restore Temporary Settings
+Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
 
-choco feature disable -n=allowGlobalConfirmation
-Enable-MicrosoftUpdate
-Install-WindowsUpdate -acceptEula
-Enable-UAC
+if (Test-PendingReboot) { Invoke-Reboot }
 
-Write-Host "####################################" -ForegroundColor Yellow
-Write-Host "# Finished" -ForegroundColor Yellow
-Write-Host "####################################" -ForegroundColor Yellow
+Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
+
+if (Test-PendingReboot) { Invoke-Reboot }
+
+Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
+
+Use-Checkpoint -Function ${Function:Install-VisualStudio2019} -CheckpointName 'VisualStudio2019' -SkipMessage 'Visual Studio 2019 is already installed'
+
+if (Test-PendingReboot) { Invoke-Reboot }
+
+Use-Checkpoint -Function ${Function:Install-VisualStudio2019Extensions} -CheckpointName 'VisualStudio2019Extensions' -SkipMessage 'Visual Studio 2019 Extensions are already installed'
+
+Use-Checkpoint -Function ${Function:Install-VisualStudioCode} -CheckpointName 'VisualStudioCode' -SkipMessage 'Visual Studio Code is already installed'
+
+Use-Checkpoint -Function ${Function:Install-VSCodeExtensions} -CheckpointName 'VSCodeExtensions' -SkipMessage 'Visual Studio Code Extensions are already installed'
+
+Use-Checkpoint -Function ${Function:Install-AzureTools} -CheckpointName 'AzureTools' -SkipMessage 'Azure Tools are already installed'
+
+Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
+
+if (Test-PendingReboot) { Invoke-Reboot }
+
+Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointName 'NodeJsAndNpmPackages' -SkipMessage 'NodeJs And Npm Packages are already installed'
+
+Use-Checkpoint -Function ${Function:Install-CoreApps} -CheckpointName 'CoreApps' -SkipMessage 'Core Apps are already installed'
+
+if (Test-PendingReboot) { Invoke-Reboot }
+
+Use-Checkpoint -Function ${Function:Install-Browsers} -CheckpointName 'Browsers' -SkipMessage 'Browsers are already installed'
+
+Use-Checkpoint -Function ${Function:Install-Messengers} -CheckpointName 'Messengers' -SkipMessage 'Messengers are already installed'
+
+Use-Checkpoint -Function ${Function:Install-KeePass} -CheckpointName 'KeePass' -SkipMessage 'KeePass is already installed'
+
+# install chocolatey as last choco package
+choco install chocolatey --limitoutput
+
+# re-enable chocolatey default confirmation behaviour
+Use-Checkpoint -Function ${Function:Disable-ChocolateyFeatures} -CheckpointName 'DisableChocolatey' -SkipMessage 'Chocolatey features already configured'
+
+if (Test-PendingReboot) { Invoke-Reboot }
+
+# reload path environment variable
+Update-Path
+
+# set HOME to user profile for git
+[Environment]::SetEnvironmentVariable("HOME", $env:UserProfile, "User")
+
+# rerun windows update after we have installed everything
+Write-BoxstarterMessage "Windows update..."
+Install-WindowsUpdate
+
+Clear-Checkpoints
+
+Write-BoxstarterMessage "Finished"
