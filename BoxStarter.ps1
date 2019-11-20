@@ -13,6 +13,14 @@
 #   example: Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -DisableReboots
 ###############################################################################
 
+Function ConvertTo-NormalHTML {
+    param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]$HTML)
+
+    $NormalHTML = New-Object -Com "HTMLFile"
+    $NormalHTML.IHTMLDocument2_write($HTML.RawContent)
+    return $NormalHTML
+}
+
 Function VsDownloadAndInstallExt($packageName) {
 	$ErrorActionPreference = "Stop"
     $vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
@@ -23,8 +31,7 @@ Function VsDownloadAndInstallExt($packageName) {
 
 	Write-Host "Grabbing VSIX extension page at $($uri)"
     $content = Invoke-WebRequest -Uri $uri -UseBasicParsing
-    $parsedHtml = New-Object -Com "HTMLFile"
-    $parsedHTML.IHTMLDocument2_write($content.RawContent)
+    $parsedHtml = ConvertTo-NormalHTML -HTML $content
 
 	Write-Host "Attempting to find package download url..."
 	$anchors = $parsedHtml.getElementsByTagName("a") | Where-Object {$_.getAttributeNode("class").Value -eq "install-button-container"}
@@ -85,10 +92,11 @@ Write-Host "####################################" -ForegroundColor Yellow
 Write-Host "# Windows Subsystems/Roles/Features" -ForegroundColor Yellow
 Write-Host "####################################" -ForegroundColor Yellow
 
-choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures
-choco install Microsoft-Hyper-V-All -source windowsFeatures
-choco install Containers -source windowsFeatures
-choco install TelnetClient -source windowsFeatures
+choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $ChocoCachePath
+choco install wsl-ubuntu-1804 --cacheLocation $ChocoCachePath
+choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $ChocoCachePath
+choco install Containers -source windowsFeatures --cacheLocation $ChocoCachePath
+choco install TelnetClient -source windowsFeatures --cacheLocation $ChocoCachePath
 
 RefreshEnv
 
@@ -134,7 +142,6 @@ choco pin add -n="sourcetree"
 Write-Host "####################################" -ForegroundColor Yellow
 Write-Host "# Visual Studio 2019" -ForegroundColor Yellow
 Write-Host "####################################" -ForegroundColor Yellow
-
 
 choco install visualstudio2019enterprise --params="--locale en-US --passive --norestart --wait --config $($path)\configs\.vsconfig"
 
