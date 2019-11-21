@@ -115,7 +115,9 @@ Function ConvertTo-NormalHTML {
 }
 
 Function Vs2019DownloadAndInstallExt($packageName) {
-	$ErrorActionPreference = "Stop"
+	# Request was blocked due to exceeding usage of resource 'Count' in namespace 'AnonymousId'.
+	# For more information on why your request was blocked, see the topic \"Rate limits\" on the Microsoft Web site (https://go.microsoft.com/fwlink/?LinkId=823950)
+	Start-Sleep -Seconds 60
     $vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
 	$vsixLocation = "$($env:Temp)\$([guid]::NewGuid()).vsix"
 	$baseProtocol = "https:"
