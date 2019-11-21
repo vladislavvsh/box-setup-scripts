@@ -424,6 +424,9 @@ Function Install-NodeJsAndNpmPackages {
 	Write-BoxstarterMessage "####################################"
 
 	choco install nodejs-lts --cacheLocation $chocoCachePath  --limitoutput
+
+	RefreshEnv
+
     npm install -g typescript
     npm install -g yarn
 }
