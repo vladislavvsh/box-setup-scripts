@@ -169,7 +169,7 @@ Function Vs2019DownloadAndInstallExtWithCheckpoint {
 
     Use-Checkpoint `
         -Function ${Function:Vs2019DownloadAndInstallExt} `
-        -CheckpointName "$(Vs2019Ext:$PackageName)" `
+        -CheckpointName "Vs2019Ext:$PackageName" `
         -SkipMessage "$PackageName is already installed" `
         $PackageName
 }
