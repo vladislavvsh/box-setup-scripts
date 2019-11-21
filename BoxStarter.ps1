@@ -118,14 +118,14 @@ Function Vs2019DownloadAndInstallExt() {
 	param (
 		[Parameter(Mandatory = $true)]
         [string]
-        $packageName
+        $PackageName
 	)
 
 	$vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
 	$vsixLocation = "$($env:Temp)\$([guid]::NewGuid()).vsix"
 	$baseProtocol = "https:"
 	$baseHostName = "marketplace.visualstudio.com"
-	$uri = "$($baseProtocol)//$($baseHostName)/items?itemName=$($packageName)"
+	$uri = "$($baseProtocol)//$($baseHostName)/items?itemName=$($PackageName)"
 
 	Write-BoxstarterMessage "Grabbing VSIX extension page at $($uri)"
     $content = Invoke-WebRequest -Uri $uri -UseBasicParsing
@@ -151,27 +151,27 @@ Function Vs2019DownloadAndInstallExt() {
 	}
 
     Write-BoxstarterMessage "Done."
-	Write-BoxstarterMessage "Installing $($packageName)..."
+	Write-BoxstarterMessage "Installing $($PackageName)..."
 	Start-Process -Filepath $vsixInstaller -ArgumentList "/q /a /nr $($vsixLocation)" -Wait
 
     Write-BoxstarterMessage "Done."
 	Write-BoxstarterMessage "Cleanup..."
 	Remove-Item $vsixLocation
-	Write-BoxstarterMessage "Installation of $($packageName) complete!"
+	Write-BoxstarterMessage "Installation of $($PackageName) complete!"
 }
 
 Function Vs2019DownloadAndInstallExtWithCheckpoint {
     param(
 		[Parameter(Mandatory = $true)]
         [string]
-        $packageName
+        $PackageName
     )
 
     Use-Checkpoint `
         -Function ${Function:Vs2019DownloadAndInstallExt} `
-        -CheckpointName "$(Vs2019Ext:$packageName)" `
-        -SkipMessage "$packageName is already installed" `
-        $packageName
+        -CheckpointName "$(Vs2019Ext:$PackageName)" `
+        -SkipMessage "$PackageName is already installed" `
+        $PackageName
 }
 
 Function WindowsUpdate {
@@ -305,27 +305,27 @@ Function Install-VisualStudio2019Extensions {
 
 	choco pin add -n=resharper-platform
 
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.AddNewFile"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.TrailingWhitespaceVisualizer"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.WebPackTaskRunner"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.NPMTaskRunner"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.PackageInstaller"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.YarnInstaller"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.DummyTextGenerator"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.MarkdownEditor"
-	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.ShowSelectionLength"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.AddNewFile"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.TrailingWhitespaceVisualizer"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.WebPackTaskRunner"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.NPMTaskRunner"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.PackageInstaller"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.YarnInstaller"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.DummyTextGenerator"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.MarkdownEditor"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.ShowSelectionLength"
 
-	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.PowerCommandsforVisualStudio"
-	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.ProductivityPowerPack2017"
-	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor"
-	Vs2019DownloadAndInstallExtWithCheckpoint "EWoodruff.VisualStudioSpellCheckerVS2017andLater"
-	Vs2019DownloadAndInstallExtWithCheckpoint "TomasRestrepo.Viasfora"
-	Vs2019DownloadAndInstallExtWithCheckpoint "josefpihrt.Roslynator2019"
-	Vs2019DownloadAndInstallExtWithCheckpoint "SonarSource.SonarLintforVisualStudio2019"
-	Vs2019DownloadAndInstallExtWithCheckpoint "TomEnglert.ResXManager"
-	Vs2019DownloadAndInstallExtWithCheckpoint "SergeyVlasov.VisualCommander"
-	Vs2019DownloadAndInstallExtWithCheckpoint "PavelSamokha.TargetFrameworkMigrator"
-	Vs2019DownloadAndInstallExtWithCheckpoint "NikolayBalakin.Outputenhancer"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.PowerCommandsforVisualStudio"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.ProductivityPowerPack2017"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "EWoodruff.VisualStudioSpellCheckerVS2017andLater"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "TomasRestrepo.Viasfora"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "josefpihrt.Roslynator2019"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SonarSource.SonarLintforVisualStudio2019"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "TomEnglert.ResXManager"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SergeyVlasov.VisualCommander"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "PavelSamokha.TargetFrameworkMigrator"
+	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "NikolayBalakin.Outputenhancer"
 }
 
 Function Install-VisualStudioCode  {
