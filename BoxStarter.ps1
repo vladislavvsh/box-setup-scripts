@@ -25,6 +25,10 @@ $Boxstarter.AutoLogin = $true # Encrypt and temp store password for auto-logins 
 
 $checkpointPrefix = 'BoxStarter:Checkpoint:'
 
+# Workaround for nested chocolatey folders resulting in path too long error
+$chocoCachePath = "C:\Temp"
+New-Item -Path $chocoCachePath -ItemType directory -Force
+
 Function Get-CheckpointName {
     param
     (
@@ -186,39 +190,69 @@ Function SetUp-PowerShell {
 	Set-PSRepository -Name PSGallery -InstallationPolicy 'Trusted'
 }
 
-Function Install-DevFeatures {
+Function Install-CoreApps {
 	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Dev Features"
+	Write-BoxstarterMessage "# Core Apps"
 	Write-BoxstarterMessage "####################################"
 
-	choco install Microsoft-Hyper-V-All -source windowsFeatures --limitoutput
-	choco install Containers -source windowsFeatures --limitoutput
-	choco install TelnetClient -source windowsFeatures --limitoutput
+	choco install chocolateygui --cacheLocation $chocoCachePath  --limitoutput
+	choco install microsoft-windows-terminal --cacheLocation $chocoCachePath  --limitoutput
+	choco install 7zip.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install vlc --cacheLocation $chocoCachePath  --limitoutput
+	choco install paint.net --cacheLocation $chocoCachePath  --limitoutput
+	choco install adobereader --cacheLocation $chocoCachePath  --limitoutput
+	choco install dropbox --cacheLocation $chocoCachePath  --limitoutput
+	choco install sharex --cacheLocation $chocoCachePath  --limitoutput
+	choco install ffmpeg --cacheLocation $chocoCachePath  --limitoutput
+	choco install rufus --cacheLocation $chocoCachePath  --limitoutput
+	choco install notepadplusplus.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install caffeine --cacheLocation $chocoCachePath  --limitoutput
 
-	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --limitoutput
-	choco install wsl-ubuntu-1804 --limitoutput
+	choco pin add -n=vlc
+	choco pin add -n="paint.net"
+	choco pin add -n=dropbox
+	choco pin add -n=sharex
+	choco pin add -n="notepadplusplus.install"
 }
 
-Function Install-Docker {
+Function Install-Browsers {
 	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Docker"
+	Write-BoxstarterMessage "# Browsers"
 	Write-BoxstarterMessage "####################################"
 
-	choco install docker-desktop --limitoutput
-	choco install docker-compose --limitoutput
+	choco install firefox --cacheLocation $chocoCachePath  --limitoutput
+	choco install tor-browser --cacheLocation $chocoCachePath  --limitoutput
 
-	choco pin add -n=docker-desktop
-	choco pin add -n=docker-compose
+	choco pin add -n=firefox
+	choco pin add -n=tor-browser
 }
 
-Function Install-Git {
+Function Install-Messengers {
 	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Git"
+	Write-BoxstarterMessage "# Messengers"
 	Write-BoxstarterMessage "####################################"
 
-	#git.install?
-	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --limitoutput
-	choco install git-credential-manager-for-windows --limitoutput
+	choco install skype --cacheLocation $chocoCachePath  --limitoutput
+	choco install slack --cacheLocation $chocoCachePath  --limitoutput
+	choco install telegram.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install whatsapp --cacheLocation $chocoCachePath  --limitoutput
+
+	choco pin add -n=skype
+	choco pin add -n="telegram.install"
+}
+
+Function Install-KeePass {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# KeePass"
+	Write-BoxstarterMessage "####################################"
+
+	choco install keepass.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-plugin-keeagent --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-plugin-keeanywhere --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-keepasshttp --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-plugin-rdp --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-rpc --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass-plugin-enhancedentryview --cacheLocation $chocoCachePath  --limitoutput
 }
 
 Function Install-VisualStudio2019 {
@@ -226,7 +260,7 @@ Function Install-VisualStudio2019 {
 	Write-BoxstarterMessage "# Visual Studio 2019"
 	Write-BoxstarterMessage "####################################"
 
-	$path = "$($env:Temp)\$([guid]::NewGuid())"
+	$path = "$($chocoCachePath)\$([guid]::NewGuid())"
 	$archive = "$($path)\master.zip"
 
 	New-Item -ItemType directory -Path $path
@@ -248,7 +282,7 @@ Function Install-VisualStudio2019Extensions {
 	Write-BoxstarterMessage "# Visual Studio 2019 Extensions"
 	Write-BoxstarterMessage "####################################"
 
-	choco install resharper-platform --limitoutput
+	choco install resharper-platform --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=resharper-platform
 
@@ -281,7 +315,7 @@ Function Install-VisualStudioCode  {
 	Write-BoxstarterMessage "####################################"
 
 	#vscode.install?
-	choco install vscode --params="/NoDesktopIcon" --limitoutput
+	choco install vscode --params="/NoDesktopIcon" --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=vscode
 
@@ -323,10 +357,20 @@ Function Install-AzureTools {
 
 	Install-Module -Name AzureRM -Scope AllUsers
 	Install-Module -Name Azure -Scope AllUsers -AllowClobber
-	choco install azure-cli --limitoutput
-	choco install microsoftazurestorageexplorer --limitoutput
+	choco install azure-cli --cacheLocation $chocoCachePath  --limitoutput
+	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=microsoftazurestorageexplorer
+}
+
+Function Install-Git {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Git"
+	Write-BoxstarterMessage "####################################"
+
+	#git.install?
+	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $chocoCachePath  --limitoutput
+	choco install git-credential-manager-for-windows --cacheLocation $chocoCachePath  --limitoutput
 }
 
 Function Install-CoreDevApps {
@@ -334,20 +378,20 @@ Function Install-CoreDevApps {
 	Write-BoxstarterMessage "# Core Dev Apps"
 	Write-BoxstarterMessage "####################################"
 
-	choco install fiddler --limitoutput
-	choco install beyondcompare --limitoutput
-	choco install beyondcompare-integration --limitoutput
-	choco install sql-server-management-studio --limitoutput
-	choco install sysinternals --limitoutput
-	choco install sourcetree --limitoutput
-	choco install poshgit --limitoutput
+	choco install fiddler --cacheLocation $chocoCachePath  --limitoutput
+	choco install beyondcompare --cacheLocation $chocoCachePath  --limitoutput
+	choco install beyondcompare-integration --cacheLocation $chocoCachePath  --limitoutput
+	choco install sql-server-management-studio --cacheLocation $chocoCachePath  --limitoutput
+	choco install sysinternals --cacheLocation $chocoCachePath  --limitoutput
+	choco install sourcetree --cacheLocation $chocoCachePath  --limitoutput
+	choco install poshgit --cacheLocation $chocoCachePath  --limitoutput
 
-	choco install putty.install --limitoutput
-	choco install winscp.install --limitoutput
-	choco install curl --limitoutput
-	choco install wget --limitoutput
-	choco install postman --limitoutput
-	choco install openvpn --params "/SELECT_LAUNCH=0" --limitoutput
+	choco install putty.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install winscp.install --cacheLocation $chocoCachePath  --limitoutput
+	choco install curl --cacheLocation $chocoCachePath  --limitoutput
+	choco install wget --cacheLocation $chocoCachePath  --limitoutput
+	choco install postman --cacheLocation $chocoCachePath  --limitoutput
+	choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=fiddler
 	choco pin add -n=beyondcompare
@@ -355,82 +399,44 @@ Function Install-CoreDevApps {
 	choco pin add -n=sourcetree
 }
 
-function Install-NodeJsAndNpmPackages {
+Function Install-NodeJsAndNpmPackages {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# NodeJs and Npm Packages"
 	Write-BoxstarterMessage "####################################"
 
-	choco install nodejs-lts --limitoutput
+	choco install nodejs-lts --cacheLocation $chocoCachePath  --limitoutput
     npm install -g typescript
     npm install -g yarn
 }
 
-Function Install-CoreApps {
+Function Install-DevFeatures {
 	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Core Apps"
+	Write-BoxstarterMessage "# Dev Features"
 	Write-BoxstarterMessage "####################################"
 
-	choco install chocolateygui --limitoutput
-	choco install microsoft-windows-terminal --limitoutput
-	choco install 7zip.install --limitoutput
-	choco install vlc --limitoutput
-	choco install paint.net --limitoutput
-	choco install adobereader --limitoutput
-	choco install dropbox --limitoutput
-	choco install sharex --limitoutput
-	choco install ffmpeg --limitoutput
-	choco install rufus --limitoutput
-	choco install notepadplusplus.install --limitoutput
-	choco install caffeine --limitoutput
+	choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
+	choco install Containers -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
+	choco install TelnetClient -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
 
-	choco pin add -n=vlc
-	choco pin add -n="paint.net"
-	choco pin add -n=dropbox
-	choco pin add -n=sharex
-	choco pin add -n="notepadplusplus.install"
+	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
+	choco install wsl-ubuntu-1804 --cacheLocation $chocoCachePath  --limitoutput
 }
 
-Function Install-Browsers {
+Function Install-Docker {
 	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Browsers"
-	Write-BoxstarterMessage "####################################"
-
-	choco install firefox --limitoutput
-	choco install tor-browser --limitoutput
-
-	choco pin add -n=firefox
-	choco pin add -n=tor-browser
-}
-
-Function Install-Messengers {
-	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Messengers"
+	Write-BoxstarterMessage "# Docker"
 	Write-BoxstarterMessage "####################################"
 
-	choco install skype --limitoutput
-	choco install slack --limitoutput
-	choco install telegram.install --limitoutput
-	choco install whatsapp --limitoutput
+	choco install docker-desktop --cacheLocation $chocoCachePath  --limitoutput
+	choco install docker-compose --cacheLocation $chocoCachePath  --limitoutput
 
-	choco pin add -n=skype
-	choco pin add -n="telegram.install"
-}
-
-Function Install-KeePass {
-	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# KeePass"
-	Write-BoxstarterMessage "####################################"
-
-	choco install keepass.install --limitoutput
-	choco install keepass-plugin-keeagent --limitoutput
-	choco install keepass-plugin-keeanywhere --limitoutput
-	choco install keepass-keepasshttp --limitoutput
-	choco install keepass-plugin-rdp --limitoutput
-	choco install keepass-rpc --limitoutput
-	choco install keepass-plugin-enhancedentryview --limitoutput
+	choco pin add -n=docker-desktop
+	choco pin add -n=docker-compose
 }
 
 Write-BoxstarterMessage "Starting setup"
+
+New-Item -Path "C:\Temp" -ItemType directory -Force | Out-Null
 
 Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate already finished'
 
@@ -443,11 +449,13 @@ Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-Pow
 
 Write-BoxstarterMessage "Starting installs"
 
-Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
+Use-Checkpoint -Function ${Function:Install-CoreApps} -CheckpointName 'CoreApps' -SkipMessage 'Core Apps are already installed'
 
-Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
+Use-Checkpoint -Function ${Function:Install-Browsers} -CheckpointName 'Browsers' -SkipMessage 'Browsers are already installed'
 
-Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
+Use-Checkpoint -Function ${Function:Install-Messengers} -CheckpointName 'Messengers' -SkipMessage 'Messengers are already installed'
+
+Use-Checkpoint -Function ${Function:Install-KeePass} -CheckpointName 'KeePass' -SkipMessage 'KeePass is already installed'
 
 Use-Checkpoint -Function ${Function:Install-VisualStudio2019} -CheckpointName 'VisualStudio2019' -SkipMessage 'Visual Studio 2019 is already installed'
 
@@ -459,20 +467,18 @@ Use-Checkpoint -Function ${Function:Install-VSCodeExtensions} -CheckpointName 'V
 
 Use-Checkpoint -Function ${Function:Install-AzureTools} -CheckpointName 'AzureTools' -SkipMessage 'Azure Tools are already installed'
 
+Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
+
 Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
 
 Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointName 'NodeJsAndNpmPackages' -SkipMessage 'NodeJs And Npm Packages are already installed'
 
-Use-Checkpoint -Function ${Function:Install-CoreApps} -CheckpointName 'CoreApps' -SkipMessage 'Core Apps are already installed'
+Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
 
-Use-Checkpoint -Function ${Function:Install-Browsers} -CheckpointName 'Browsers' -SkipMessage 'Browsers are already installed'
-
-Use-Checkpoint -Function ${Function:Install-Messengers} -CheckpointName 'Messengers' -SkipMessage 'Messengers are already installed'
-
-Use-Checkpoint -Function ${Function:Install-KeePass} -CheckpointName 'KeePass' -SkipMessage 'KeePass is already installed'
+Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
 
 # install chocolatey as last choco package
-choco install chocolatey --limitoutput
+choco install chocolatey --cacheLocation $chocoCachePath  --limitoutput
 
 # re-enable chocolatey default confirmation behaviour
 Use-Checkpoint -Function ${Function:Disable-ChocolateyFeatures} -CheckpointName 'DisableChocolatey' -SkipMessage 'Chocolatey features already configured'
