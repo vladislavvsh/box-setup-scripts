@@ -114,11 +114,14 @@ Function ConvertTo-NormalHTML {
     return $NormalHTML
 }
 
-Function Vs2019DownloadAndInstallExt($packageName) {
-	# Request was blocked due to exceeding usage of resource 'Count' in namespace 'AnonymousId'.
-	# For more information on why your request was blocked, see the topic \"Rate limits\" on the Microsoft Web site (https://go.microsoft.com/fwlink/?LinkId=823950)
-	Start-Sleep -Seconds 60
-    $vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
+Function Vs2019DownloadAndInstallExt() {
+	param (
+		[Parameter(Mandatory = $true)]
+        [string]
+        $packageName
+	)
+
+	$vsixInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\VSIXInstaller"
 	$vsixLocation = "$($env:Temp)\$([guid]::NewGuid()).vsix"
 	$baseProtocol = "https:"
 	$baseHostName = "marketplace.visualstudio.com"
@@ -155,6 +158,20 @@ Function Vs2019DownloadAndInstallExt($packageName) {
 	Write-BoxstarterMessage "Cleanup..."
 	Remove-Item $vsixLocation
 	Write-BoxstarterMessage "Installation of $($packageName) complete!"
+}
+
+Function Vs2019DownloadAndInstallExtWithCheckpoint {
+    param(
+		[Parameter(Mandatory = $true)]
+        [string]
+        $packageName
+    )
+
+    Use-Checkpoint `
+        -Function ${Function:Vs2019DownloadAndInstallExt} `
+        -CheckpointName "$(Vs2019Ext:$packageName)" `
+        -SkipMessage "$packageName is already installed" `
+        $packageName
 }
 
 Function WindowsUpdate {
@@ -288,27 +305,27 @@ Function Install-VisualStudio2019Extensions {
 
 	choco pin add -n=resharper-platform
 
-	Vs2019DownloadAndInstallExt("MadsKristensen.AddNewFile")
-	Vs2019DownloadAndInstallExt("MadsKristensen.TrailingWhitespaceVisualizer")
-	Vs2019DownloadAndInstallExt("MadsKristensen.WebPackTaskRunner")
-	Vs2019DownloadAndInstallExt("MadsKristensen.NPMTaskRunner")
-	Vs2019DownloadAndInstallExt("MadsKristensen.PackageInstaller")
-	Vs2019DownloadAndInstallExt("MadsKristensen.YarnInstaller")
-	Vs2019DownloadAndInstallExt("MadsKristensen.DummyTextGenerator")
-	Vs2019DownloadAndInstallExt("MadsKristensen.MarkdownEditor")
-	Vs2019DownloadAndInstallExt("MadsKristensen.ShowSelectionLength")
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.AddNewFile"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.TrailingWhitespaceVisualizer"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.WebPackTaskRunner"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.NPMTaskRunner"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.PackageInstaller"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.YarnInstaller"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.DummyTextGenerator"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.MarkdownEditor"
+	Vs2019DownloadAndInstallExtWithCheckpoint "MadsKristensen.ShowSelectionLength"
 
-	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.PowerCommandsforVisualStudio")
-	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.ProductivityPowerPack2017")
-	Vs2019DownloadAndInstallExt("VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor")
-	Vs2019DownloadAndInstallExt("EWoodruff.VisualStudioSpellCheckerVS2017andLater")
-	Vs2019DownloadAndInstallExt("TomasRestrepo.Viasfora")
-	Vs2019DownloadAndInstallExt("josefpihrt.Roslynator2019")
-	Vs2019DownloadAndInstallExt("SonarSource.SonarLintforVisualStudio2019")
-	Vs2019DownloadAndInstallExt("TomEnglert.ResXManager")
-	Vs2019DownloadAndInstallExt("SergeyVlasov.VisualCommander")
-	Vs2019DownloadAndInstallExt("PavelSamokha.TargetFrameworkMigrator")
-	Vs2019DownloadAndInstallExt("NikolayBalakin.Outputenhancer")
+	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.PowerCommandsforVisualStudio"
+	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.ProductivityPowerPack2017"
+	Vs2019DownloadAndInstallExtWithCheckpoint "VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor"
+	Vs2019DownloadAndInstallExtWithCheckpoint "EWoodruff.VisualStudioSpellCheckerVS2017andLater"
+	Vs2019DownloadAndInstallExtWithCheckpoint "TomasRestrepo.Viasfora"
+	Vs2019DownloadAndInstallExtWithCheckpoint "josefpihrt.Roslynator2019"
+	Vs2019DownloadAndInstallExtWithCheckpoint "SonarSource.SonarLintforVisualStudio2019"
+	Vs2019DownloadAndInstallExtWithCheckpoint "TomEnglert.ResXManager"
+	Vs2019DownloadAndInstallExtWithCheckpoint "SergeyVlasov.VisualCommander"
+	Vs2019DownloadAndInstallExtWithCheckpoint "PavelSamokha.TargetFrameworkMigrator"
+	Vs2019DownloadAndInstallExtWithCheckpoint "NikolayBalakin.Outputenhancer"
 }
 
 Function Install-VisualStudioCode  {
