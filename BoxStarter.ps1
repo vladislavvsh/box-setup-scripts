@@ -149,7 +149,7 @@ Function Vs2019DownloadAndInstallExt($packageName) {
 
     Write-BoxstarterMessage "Done."
 	Write-BoxstarterMessage "Installing $($packageName)..."
-	Start-Process -Filepath $vsixInstaller -ArgumentList "/q /a $($vsixLocation)" -Wait
+	Start-Process -Filepath $vsixInstaller -ArgumentList "/q /a /nr $($vsixLocation)" -Wait
 
     Write-BoxstarterMessage "Done."
 	Write-BoxstarterMessage "Cleanup..."
