@@ -29,7 +29,7 @@ $chocoCachePath = "C:\Temp"
 New-Item -Path $chocoCachePath -ItemType directory -Force
 
 # Script libs & configs
-$contentPath = "$chocoCachePath)\_box"
+$contentPath = "$chocoCachePath)\Box"
 New-Item -ItemType directory -Path $contentPath
 
 Function Get-CheckpointName {
@@ -270,7 +270,7 @@ Function Install-Browsers {
 	Write-BoxstarterMessage "# Browsers"
 	Write-BoxstarterMessage "####################################"
 
-	choco install firefox --cacheLocation $chocoCachePath  --limitoutput
+	choco install googlechrome --cacheLocation $chocoCachePath  --limitoutput
 	choco install tor-browser --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=googlechrome
@@ -323,7 +323,7 @@ Function Install-VisualStudio2019Extensions {
 
 	choco pin add -n=resharper-platform
 
-	Add-Type -Path "$contentPath\libs\Microsoft.mshtml.dll
+	Add-Type -Path "$contentPath\libs\Microsoft.mshtml.dll"
 
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.AddNewFile"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.TrailingWhitespaceVisualizer"
@@ -368,7 +368,7 @@ Function Install-VSCodeExtensions {
 
     # need to launch vscode so user folders are created as we can install extensions
 	$process = Start-Process code -PassThru
-	Start-Sleep -s 10
+	Start-Sleep -s 60
 	$process.Close()
 
 	code --install-extension alexanderte.dainty-material-theme-palenight-vscode
