@@ -169,7 +169,7 @@ Function Vs2019DownloadAndInstallExtWithCheckpoint {
 }
 
 Function DownloadScriptContent {
-	$archive = "$($contentPath)\master.zip"
+	$archive = "$contentPath\master.zip"
 
 	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
 	Expand-Archive -Path $archive -DestinationPath $contentPath
