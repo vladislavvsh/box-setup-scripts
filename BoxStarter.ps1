@@ -11,6 +11,7 @@
 #
 # NOTE the "." above is required.
 #
+# Update App Store first!
 # Run this boxstarter by calling the following from **elevated** powershell:
 #
 #	$cred = Get-Credential
@@ -192,12 +193,6 @@ Function WindowsUpdate {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Updating windows"
 	Write-BoxstarterMessage "####################################"
-
-	# update App Store apps
-	$namespaceName = "root\cimv2\mdm\dmmap"
-	$className = "MDM_EnterpriseModernAppManagement_AppManagement01"
-	$wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
-	$result = $wmiObj.UpdateScanMethod()
 
     Enable-MicrosoftUpdate
 	Install-WindowsUpdate -AcceptEula
@@ -492,7 +487,7 @@ Function Install-Docker {
 
 Write-BoxstarterMessage "Starting setup"
 
-#Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
+Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
 
 Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate os already finished'
 
