@@ -13,7 +13,6 @@
 #
 # Run this boxstarter by calling the following from **elevated** powershell:
 #
-#	Add-Type -Path C:\Program Files (x86)\Microsoft.NET\Primary Interop Assemblies\Microsoft.mshtml.dll
 #	$cred = Get-Credential
 # 	Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -Credential $cred –Force
 #
@@ -28,6 +27,10 @@ $checkpointPrefix = 'BoxStarter:Checkpoint:'
 # Workaround for nested chocolatey folders resulting in path too long error
 $chocoCachePath = "C:\Temp"
 New-Item -Path $chocoCachePath -ItemType directory -Force
+
+# Script libs & configs
+$contentPath = "$chocoCachePath)\_box"
+New-Item -ItemType directory -Path $contentPath
 
 Function Get-CheckpointName {
     param
@@ -104,16 +107,6 @@ function Update-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
-Function ConvertTo-NormalHTML {
-    param([Parameter(Mandatory = $true, ValueFromPipeline = $true)]$HTML)
-
-	Add-Type -Path C:\Temp\Microsoft.mshtml.dll
-
-    $NormalHTML = New-Object -Com "HTMLFile"
-    $NormalHTML.IHTMLDocument2_write($HTML.RawContent)
-    return $NormalHTML
-}
-
 Function Vs2019DownloadAndInstallExt() {
 	param (
 		[Parameter(Mandatory = $true)]
@@ -129,7 +122,8 @@ Function Vs2019DownloadAndInstallExt() {
 
 	Write-BoxstarterMessage "Grabbing VSIX extension page at $($uri)"
     $content = Invoke-WebRequest -Uri $uri -UseBasicParsing
-    $parsedHtml = ConvertTo-NormalHTML -HTML $content
+	$parsedHtml = New-Object -Com "HTMLFile"
+	$parsedHtml.IHTMLDocument2_write($content.RawContent)
 
 	Write-BoxstarterMessage "Attempting to find package download url..."
 	$anchors = $parsedHtml.getElementsByTagName("a") | Where-Object {$_.getAttributeNode("class").Value -eq "install-button-container"}
@@ -174,14 +168,33 @@ Function Vs2019DownloadAndInstallExtWithCheckpoint {
         $PackageName
 }
 
+Function DownloadScriptContent {
+	$archive = "$($contentPath)\master.zip"
+
+	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
+	Expand-Archive -Path $archive -DestinationPath $contentPath
+
+	Move-Item (Join-Path $contentPath 'box-setup-scripts-master\*') $contentPath
+	Remove-Item -Path (Join-Path $contentPath 'box-setup-scripts-master')
+}
+
+Function DeleteScriptContent {
+	Remove-Item -Path $contentPath -Force -Recurse
+}
+
 Function WindowsUpdate {
     if (Test-Path env:\BoxStarter:SkipWindowsUpdate) {
         return
     }
 
+	# update App Store apps
+	$namespaceName = "root\cimv2\mdm\dmmap"
+	$className = "MDM_EnterpriseModernAppManagement_AppManagement01"
+	$wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
+	$result = $wmiObj.UpdateScanMethod()
+
     Enable-MicrosoftUpdate
-    Install-WindowsUpdate -AcceptEula
-    #if (Test-PendingReboot) { Invoke-Reboot }
+	Install-WindowsUpdate -AcceptEula
 }
 
 function Enable-ChocolateyFeatures {
@@ -198,6 +211,24 @@ function Set-BaseSettings {
 	Write-BoxstarterMessage "####################################"
 
     Update-ExecutionPolicy -Policy Unrestricted
+}
+
+function Set-PowerSettings {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Power Settings"
+	Write-BoxstarterMessage "####################################"
+
+	# Turn off hibernation
+	# powercfg /H OFF
+
+	# Change Power saving options (ac=plugged in dc=battery)
+	powercfg -change -monitor-timeout-ac 15
+	powercfg -change -monitor-timeout-dc 5
+	powercfg -change -standby-timeout-ac 0
+	powercfg -change -standby-timeout-dc 30
+	powercfg -change -disk-timeout-ac 0
+	powercfg -change -disk-timeout-dc 30
+	powercfg -change -hibernate-timeout-ac 0
 }
 
 Function SetUp-PowerShell {
@@ -242,7 +273,7 @@ Function Install-Browsers {
 	choco install firefox --cacheLocation $chocoCachePath  --limitoutput
 	choco install tor-browser --cacheLocation $chocoCachePath  --limitoutput
 
-	choco pin add -n=firefox
+	choco pin add -n=googlechrome
 	choco pin add -n=tor-browser
 }
 
@@ -279,21 +310,8 @@ Function Install-VisualStudio2019 {
 	Write-BoxstarterMessage "# Visual Studio 2019"
 	Write-BoxstarterMessage "####################################"
 
-	$path = "$($chocoCachePath)\$([guid]::NewGuid())"
-	$archive = "$($path)\master.zip"
-
-	New-Item -ItemType directory -Path $path
-	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
-	Expand-Archive -Path $archive -DestinationPath $path
-
-	Move-Item (Join-Path $path 'box-setup-scripts-master\*') $path
-	Remove-Item -Path (Join-Path $path 'box-setup-scripts-master')
-
-	choco install visualstudio2019enterprise --params="--locale en-US --passive --norestart --wait --config $($path)\configs\.vsconfig"
+	choco install visualstudio2019enterprise --params="--locale en-US --passive --norestart --wait --config $($contentPath)\configs\.vsconfig"
 	choco pin add -n=visualstudio2019enterprise
-
-	Remove-Item -Path $archive
-	Remove-Item -Path $path -Force -Recurse
 }
 
 Function Install-VisualStudio2019Extensions {
@@ -304,6 +322,8 @@ Function Install-VisualStudio2019Extensions {
 	choco install resharper-platform --cacheLocation $chocoCachePath  --limitoutput
 
 	choco pin add -n=resharper-platform
+
+	Add-Type -Path "$contentPath\libs\Microsoft.mshtml.dll
 
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.AddNewFile"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "MadsKristensen.TrailingWhitespaceVisualizer"
@@ -424,11 +444,8 @@ Function Install-NodeJsAndNpmPackages {
 	Write-BoxstarterMessage "####################################"
 
 	choco install nodejs-lts --cacheLocation $chocoCachePath  --limitoutput
-
-	RefreshEnv
-
-    npm install -g typescript
-    npm install -g yarn
+	choco install typescript
+	choco install yarn
 }
 
 Function Install-DevFeatures {
@@ -441,7 +458,19 @@ Function Install-DevFeatures {
 	choco install TelnetClient -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
 
 	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
-	choco install wsl-ubuntu-1804 --cacheLocation $chocoCachePath  --limitoutput
+
+	# TODO: Move this to choco install once --root is included in that package
+	# choco install wsl-ubuntu-1804 --cacheLocation $chocoCachePath  --limitoutput
+	$appLocation = "$($env:Temp)\Ubuntu.appx"
+	Invoke-WebRequest -Uri https://aka.ms/wsl-ubuntu-1804 -OutFile $appLocation -UseBasicParsing
+	Add-AppxPackage -Path $appLocation
+	Remove-Item $appLocation
+
+	# run the distro once and have it install locally with root user, unset password
+	RefreshEnv
+	Ubuntu1804 install --root
+	Ubuntu1804 run apt update
+	Ubuntu1804 run apt upgrade -y
 }
 
 Function Install-Docker {
@@ -458,14 +487,16 @@ Function Install-Docker {
 
 Write-BoxstarterMessage "Starting setup"
 
-New-Item -Path "C:\Temp" -ItemType directory -Force | Out-Null
+Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
 
-Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate already finished'
+Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate os already finished'
 
 # disable chocolatey default confirmation behaviour (no need for --yes)
-Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features already configured'
+Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features are already configured'
 
 Use-Checkpoint -Function ${Function:Set-BaseSettings} -CheckpointName 'BaseSettings' -SkipMessage 'Base settings are already configured'
+
+Use-Checkpoint -Function ${Function:Set-PowerSettings} -CheckpointName 'PowerSettings' -SkipMessage 'Power settings are already configured'
 
 Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
 
@@ -501,6 +532,7 @@ Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -Sk
 
 # install chocolatey as last choco package
 choco install chocolatey --cacheLocation $chocoCachePath  --limitoutput
+choco install choco-upgrade-all-at --params "'/DAILY:yes /TIME:14:00 /ABORTTIME:16:00'"
 
 # re-enable chocolatey default confirmation behaviour
 Use-Checkpoint -Function ${Function:Disable-ChocolateyFeatures} -CheckpointName 'DisableChocolatey' -SkipMessage 'Chocolatey features already configured'
@@ -518,5 +550,7 @@ Write-BoxstarterMessage "Windows update..."
 WindowsUpdate
 
 Clear-Checkpoints
+
+DeleteScriptContent
 
 Write-BoxstarterMessage "Finished"
