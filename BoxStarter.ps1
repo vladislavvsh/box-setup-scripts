@@ -29,7 +29,7 @@ $chocoCachePath = "C:\Temp"
 New-Item -Path $chocoCachePath -ItemType directory -Force
 
 # Script libs & configs
-$contentPath = "$chocoCachePath)\Box"
+$contentPath = "$chocoCachePath\Box"
 New-Item -ItemType directory -Path $contentPath
 
 Function Get-CheckpointName {
