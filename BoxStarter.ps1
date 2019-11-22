@@ -172,7 +172,7 @@ Function DownloadScriptContent {
 	$archive = "$contentPath\master.zip"
 
 	Invoke-WebRequest https://github.com/vladislavvsh/box-setup-scripts/archive/master.zip -UseBasicParsing -OutFile $archive
-	Expand-Archive -Path $archive -DestinationPath $contentPath
+	Expand-Archive -Force -Path $archive -DestinationPath $contentPath
 
 	Move-Item (Join-Path $contentPath 'box-setup-scripts-master\*') $contentPath
 	Remove-Item -Path (Join-Path $contentPath 'box-setup-scripts-master')
