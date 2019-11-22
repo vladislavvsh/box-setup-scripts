@@ -187,7 +187,11 @@ Function DeleteScriptContent {
 Function WindowsUpdate {
     if (Test-Path env:\BoxStarter:SkipWindowsUpdate) {
         return
-    }
+	}
+
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# Updating windows"
+	Write-BoxstarterMessage "####################################"
 
 	# update App Store apps
 	$namespaceName = "root\cimv2\mdm\dmmap"
