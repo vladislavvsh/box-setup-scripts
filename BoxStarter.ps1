@@ -246,18 +246,19 @@ Function Install-CoreApps {
 	Write-BoxstarterMessage "# Core Apps"
 	Write-BoxstarterMessage "####################################"
 
-	choco install chocolateygui --cacheLocation $chocoCachePath  --limitoutput
-	choco install microsoft-windows-terminal --cacheLocation $chocoCachePath  --limitoutput
-	choco install 7zip.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install vlc --cacheLocation $chocoCachePath  --limitoutput
-	choco install paint.net --cacheLocation $chocoCachePath  --limitoutput
-	choco install adobereader --cacheLocation $chocoCachePath  --limitoutput
-	choco install dropbox --cacheLocation $chocoCachePath  --limitoutput
-	choco install sharex --cacheLocation $chocoCachePath  --limitoutput
-	choco install ffmpeg --cacheLocation $chocoCachePath  --limitoutput
-	choco install rufus --cacheLocation $chocoCachePath  --limitoutput
-	choco install notepadplusplus.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install caffeine --cacheLocation $chocoCachePath  --limitoutput
+	choco install chocolateygui --cacheLocation $chocoCachePath --limitoutput
+	choco install microsoft-windows-terminal --cacheLocation $chocoCachePath --limitoutput
+	choco install 7zip.install --cacheLocation $chocoCachePath --limitoutput
+	choco install vlc --cacheLocation $chocoCachePath --limitoutput
+	choco install paint.net --cacheLocation $chocoCachePath --limitoutput
+	choco install adobereader --cacheLocation $chocoCachePath --limitoutput
+	choco install dropbox --cacheLocation $chocoCachePath --limitoutput
+	choco install sharex --cacheLocation $chocoCachePath --limitoutput
+	choco install ffmpeg --cacheLocation $chocoCachePath --limitoutput
+	choco install rufus --cacheLocation $chocoCachePath --limitoutput
+	choco install notepadplusplus.install --cacheLocation $chocoCachePath --limitoutput
+	choco install caffeine --cacheLocation $chocoCachePath --limitoutput
+	choco install boostnote --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=vlc
 	choco pin add -n="paint.net"
@@ -270,8 +271,8 @@ Function Install-Browsers {
 	Write-BoxstarterMessage "# Browsers"
 	Write-BoxstarterMessage "####################################"
 
-	choco install googlechrome --cacheLocation $chocoCachePath  --limitoutput
-	choco install tor-browser --cacheLocation $chocoCachePath  --limitoutput
+	choco install googlechrome --cacheLocation $chocoCachePath --limitoutput
+	choco install tor-browser --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=googlechrome
 	choco pin add -n=tor-browser
@@ -282,10 +283,10 @@ Function Install-Messengers {
 	Write-BoxstarterMessage "# Messengers"
 	Write-BoxstarterMessage "####################################"
 
-	choco install skype --cacheLocation $chocoCachePath  --limitoutput
-	choco install slack --cacheLocation $chocoCachePath  --limitoutput
-	choco install telegram.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install whatsapp --cacheLocation $chocoCachePath  --limitoutput
+	choco install skype --cacheLocation $chocoCachePath --limitoutput
+	choco install slack --cacheLocation $chocoCachePath --limitoutput
+	choco install telegram.install --cacheLocation $chocoCachePath --limitoutput
+	choco install whatsapp --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=skype
 	choco pin add -n="telegram.install"
@@ -296,13 +297,14 @@ Function Install-KeePass {
 	Write-BoxstarterMessage "# KeePass"
 	Write-BoxstarterMessage "####################################"
 
-	choco install keepass.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-plugin-keeagent --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-plugin-keeanywhere --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-keepasshttp --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-plugin-rdp --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-rpc --cacheLocation $chocoCachePath  --limitoutput
-	choco install keepass-plugin-enhancedentryview --cacheLocation $chocoCachePath  --limitoutput
+	choco install keepass.install --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-plugin-keeagent --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-plugin-keeanywhere --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-keepasshttp --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-plugin-rdp --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-rpc --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-plugin-enhancedentryview --cacheLocation $chocoCachePath --limitoutput
+	choco install keepass-plugin-winhello --cacheLocation $chocoCachePath --limitoutput
 }
 
 Function Install-VisualStudio2019 {
@@ -319,7 +321,7 @@ Function Install-VisualStudio2019Extensions {
 	Write-BoxstarterMessage "# Visual Studio 2019 Extensions"
 	Write-BoxstarterMessage "####################################"
 
-	choco install resharper-platform --cacheLocation $chocoCachePath  --limitoutput
+	choco install resharper-platform --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=resharper-platform
 
@@ -354,7 +356,7 @@ Function Install-VisualStudioCode  {
 	Write-BoxstarterMessage "####################################"
 
 	#vscode.install?
-	choco install vscode --params="/NoDesktopIcon" --cacheLocation $chocoCachePath  --limitoutput
+	choco install vscode --params="/NoDesktopIcon" --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=vscode
 
@@ -396,8 +398,8 @@ Function Install-AzureTools {
 
 	Install-Module -Name AzureRM -Scope AllUsers
 	Install-Module -Name Azure -Scope AllUsers -AllowClobber
-	choco install azure-cli --cacheLocation $chocoCachePath  --limitoutput
-	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath  --limitoutput
+	choco install azure-cli --cacheLocation $chocoCachePath --limitoutput
+	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=microsoftazurestorageexplorer
 }
@@ -408,8 +410,8 @@ Function Install-Git {
 	Write-BoxstarterMessage "####################################"
 
 	#git.install?
-	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $chocoCachePath  --limitoutput
-	choco install git-credential-manager-for-windows --cacheLocation $chocoCachePath  --limitoutput
+	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $chocoCachePath --limitoutput
+	choco install git-credential-manager-for-windows --cacheLocation $chocoCachePath --limitoutput
 }
 
 Function Install-CoreDevApps {
@@ -417,25 +419,27 @@ Function Install-CoreDevApps {
 	Write-BoxstarterMessage "# Core Dev Apps"
 	Write-BoxstarterMessage "####################################"
 
-	choco install fiddler --cacheLocation $chocoCachePath  --limitoutput
-	choco install beyondcompare --cacheLocation $chocoCachePath  --limitoutput
-	choco install beyondcompare-integration --cacheLocation $chocoCachePath  --limitoutput
-	choco install sql-server-management-studio --cacheLocation $chocoCachePath  --limitoutput
-	choco install sysinternals --cacheLocation $chocoCachePath  --limitoutput
-	choco install sourcetree --cacheLocation $chocoCachePath  --limitoutput
-	choco install poshgit --cacheLocation $chocoCachePath  --limitoutput
-
-	choco install putty.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install winscp.install --cacheLocation $chocoCachePath  --limitoutput
-	choco install curl --cacheLocation $chocoCachePath  --limitoutput
-	choco install wget --cacheLocation $chocoCachePath  --limitoutput
-	choco install postman --cacheLocation $chocoCachePath  --limitoutput
-	choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $chocoCachePath  --limitoutput
+	choco install fiddler --cacheLocation $chocoCachePath --limitoutput
+	choco install beyondcompare --cacheLocation $chocoCachePath --limitoutput
+	choco install beyondcompare-integration --cacheLocation $chocoCachePath --limitoutput
+	choco install sql-server-management-studio --cacheLocation $chocoCachePath --limitoutput
+	choco install sysinternals --cacheLocation $chocoCachePath --limitoutput
+	#choco install sourcetree --cacheLocation $chocoCachePath --limitoutput
+	choco install git-fork --cacheLocation $chocoCachePath --limitoutput
+	choco install poshgit --cacheLocation $chocoCachePath --limitoutput
+	choco install oh-my-posh --cacheLocation $chocoCachePath --limitoutput
+	choco install putty.install --cacheLocation $chocoCachePath --limitoutput
+	choco install winscp.install --cacheLocation $chocoCachePath --limitoutput
+	choco install curl --cacheLocation $chocoCachePath --limitoutput
+	choco install wget --cacheLocation $chocoCachePath --limitoutput
+	choco install postman --cacheLocation $chocoCachePath --limitoutput
+	choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=fiddler
 	choco pin add -n=beyondcompare
 	choco pin add -n=sql-server-management-studio
-	choco pin add -n=sourcetree
+	#choco pin add -n=sourcetree
+	choco pin add -n=git-fork
 }
 
 Function Install-NodeJsAndNpmPackages {
@@ -443,7 +447,7 @@ Function Install-NodeJsAndNpmPackages {
 	Write-BoxstarterMessage "# NodeJs and Npm Packages"
 	Write-BoxstarterMessage "####################################"
 
-	choco install nodejs-lts --cacheLocation $chocoCachePath  --limitoutput
+	choco install nodejs-lts --cacheLocation $chocoCachePath --limitoutput
 	choco install typescript
 	choco install yarn
 }
@@ -453,14 +457,14 @@ Function Install-DevFeatures {
 	Write-BoxstarterMessage "# Dev Features"
 	Write-BoxstarterMessage "####################################"
 
-	choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
-	choco install Containers -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
-	choco install TelnetClient -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
+	choco install Microsoft-Hyper-V-All -source windowsFeatures --cacheLocation $chocoCachePath --limitoutput
+	choco install Containers -source windowsFeatures --cacheLocation $chocoCachePath --limitoutput
+	choco install TelnetClient -source windowsFeatures --cacheLocation $chocoCachePath --limitoutput
 
-	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $chocoCachePath  --limitoutput
+	choco install Microsoft-Windows-Subsystem-Linux -source windowsFeatures --cacheLocation $chocoCachePath --limitoutput
 
 	# TODO: Move this to choco install once --root is included in that package
-	# choco install wsl-ubuntu-1804 --cacheLocation $chocoCachePath  --limitoutput
+	# choco install wsl-ubuntu-1804 --cacheLocation $chocoCachePath --limitoutput
 	$appLocation = "$($env:Temp)\Ubuntu.appx"
 	Invoke-WebRequest -Uri https://aka.ms/wsl-ubuntu-1804 -OutFile $appLocation -UseBasicParsing
 	Add-AppxPackage -Path $appLocation
@@ -478,8 +482,8 @@ Function Install-Docker {
 	Write-BoxstarterMessage "# Docker"
 	Write-BoxstarterMessage "####################################"
 
-	choco install docker-desktop --cacheLocation $chocoCachePath  --limitoutput
-	choco install docker-compose --cacheLocation $chocoCachePath  --limitoutput
+	choco install docker-desktop --cacheLocation $chocoCachePath --limitoutput
+	choco install docker-compose --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=docker-desktop
 	choco pin add -n=docker-compose
@@ -531,7 +535,7 @@ Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFea
 Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
 
 # install chocolatey as last choco package
-choco install chocolatey --cacheLocation $chocoCachePath  --limitoutput
+choco install chocolatey --cacheLocation $chocoCachePath --limitoutput
 choco install choco-upgrade-all-at --params "'/DAILY:yes /TIME:14:00 /ABORTTIME:16:00'"
 
 # re-enable chocolatey default confirmation behaviour
