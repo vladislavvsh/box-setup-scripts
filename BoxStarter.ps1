@@ -30,7 +30,7 @@ New-Item -Path $chocoCachePath -ItemType directory -Force
 
 # Script libs & configs
 $contentPath = "$chocoCachePath\Box"
-New-Item -Path $contentPath -ItemType directory
+New-Item -Path $contentPath -ItemType directory -Force
 
 Function Get-CheckpointName {
     param
@@ -203,15 +203,15 @@ Function WindowsUpdate {
 	Install-WindowsUpdate -AcceptEula
 }
 
-function Enable-ChocolateyFeatures {
+Function Enable-ChocolateyFeatures {
     choco feature enable --name=allowGlobalConfirmation
 }
 
-function Disable-ChocolateyFeatures {
+Function Disable-ChocolateyFeatures {
     choco feature disable --name=allowGlobalConfirmation
 }
 
-function Set-BaseSettings {
+Function Set-BaseSettings {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Base Settings"
 	Write-BoxstarterMessage "####################################"
@@ -219,7 +219,7 @@ function Set-BaseSettings {
     Update-ExecutionPolicy -Policy Unrestricted
 }
 
-function Set-PowerSettings {
+Function Set-PowerSettings {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Power Settings"
 	Write-BoxstarterMessage "####################################"
@@ -270,7 +270,6 @@ Function Install-CoreApps {
 	choco pin add -n=sharex
 	choco pin add -n="notepadplusplus.install"
 }
-
 Function Install-Browsers {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Browsers"
@@ -493,7 +492,7 @@ Function Install-Docker {
 
 Write-BoxstarterMessage "Starting setup"
 
-Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
+#Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
 
 Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate os already finished'
 
