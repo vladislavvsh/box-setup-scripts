@@ -30,7 +30,7 @@ New-Item -Path $chocoCachePath -ItemType directory -Force
 
 # Script libs & configs
 $contentPath = "$chocoCachePath\Box"
-New-Item -ItemType directory -Path $contentPath
+New-Item -Path $contentPath -ItemType directory
 
 Function Get-CheckpointName {
     param
@@ -176,6 +176,8 @@ Function DownloadScriptContent {
 
 	Move-Item (Join-Path $contentPath 'box-setup-scripts-master\*') $contentPath
 	Remove-Item -Path (Join-Path $contentPath 'box-setup-scripts-master')
+
+	Remove-Item $archive
 }
 
 Function DeleteScriptContent {
