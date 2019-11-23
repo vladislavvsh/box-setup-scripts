@@ -92,6 +92,7 @@
     "Microsoft.VisualStudio.Web.Mvc4.ComponentGroup",
     "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1",
     "Microsoft.NetCore.ComponentGroup.Web.2.1",
+    "Microsoft.VisualStudio.Component.VisualStudioData",
     "Microsoft.Net.Component.4.6.1.SDK",
     "Microsoft.Net.Component.4.7.1.SDK",
     "Microsoft.Net.Component.4.7.2.SDK"

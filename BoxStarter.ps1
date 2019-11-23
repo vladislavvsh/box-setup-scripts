@@ -15,7 +15,7 @@
 # Run this boxstarter by calling the following from **elevated** powershell:
 #
 #	$cred = Get-Credential
-# 	Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -Credential $cred –Force
+# 	Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -Credential $cred -Force
 #
 ###############################################################################
 
@@ -232,15 +232,6 @@ Function Set-PowerSettings {
 	powercfg -change -hibernate-timeout-ac 0
 }
 
-Function SetUp-PowerShell {
-	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# PowerShell"
-	Write-BoxstarterMessage "####################################"
-
-	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-	Set-PSRepository -Name PSGallery -InstallationPolicy 'Trusted'
-}
-
 Function Install-CoreApps {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Core Apps"
@@ -266,6 +257,7 @@ Function Install-CoreApps {
 	choco pin add -n=sharex
 	choco pin add -n="notepadplusplus.install"
 }
+
 Function Install-Browsers {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Browsers"
@@ -391,19 +383,6 @@ Function Install-VSCodeExtensions {
 	code --install-extension ms-vscode.vscode-typescript-tslint-plugin
 }
 
-Function Install-AzureTools {
-	Write-BoxstarterMessage "####################################"
-	Write-BoxstarterMessage "# Azure Tools"
-	Write-BoxstarterMessage "####################################"
-
-	Install-Module -Name AzureRM -Scope AllUsers
-	Install-Module -Name Azure -Scope AllUsers -AllowClobber
-	choco install azure-cli --cacheLocation $chocoCachePath --limitoutput
-	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath --limitoutput
-
-	choco pin add -n=microsoftazurestorageexplorer
-}
-
 Function Install-Git {
 	Write-BoxstarterMessage "####################################"
 	Write-BoxstarterMessage "# Git"
@@ -412,6 +391,12 @@ Function Install-Git {
 	#git.install?
 	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $chocoCachePath --limitoutput
 	choco install git-credential-manager-for-windows --cacheLocation $chocoCachePath --limitoutput
+
+	#choco install sourcetree --cacheLocation $chocoCachePath --limitoutput
+	choco install git-fork --cacheLocation $chocoCachePath --limitoutput
+
+	#choco pin add -n=sourcetree
+	choco pin add -n=git-fork
 }
 
 Function Install-CoreDevApps {
@@ -424,22 +409,19 @@ Function Install-CoreDevApps {
 	choco install beyondcompare-integration --cacheLocation $chocoCachePath --limitoutput
 	choco install sql-server-management-studio --cacheLocation $chocoCachePath --limitoutput
 	choco install sysinternals --cacheLocation $chocoCachePath --limitoutput
-	#choco install sourcetree --cacheLocation $chocoCachePath --limitoutput
-	choco install git-fork --cacheLocation $chocoCachePath --limitoutput
-	choco install poshgit --cacheLocation $chocoCachePath --limitoutput
-	choco install oh-my-posh --cacheLocation $chocoCachePath --limitoutput
 	choco install putty.install --cacheLocation $chocoCachePath --limitoutput
 	choco install winscp.install --cacheLocation $chocoCachePath --limitoutput
 	choco install curl --cacheLocation $chocoCachePath --limitoutput
 	choco install wget --cacheLocation $chocoCachePath --limitoutput
 	choco install postman --cacheLocation $chocoCachePath --limitoutput
 	choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $chocoCachePath --limitoutput
+	choco install azure-cli --cacheLocation $chocoCachePath --limitoutput
+	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=fiddler
 	choco pin add -n=beyondcompare
 	choco pin add -n=sql-server-management-studio
-	#choco pin add -n=sourcetree
-	choco pin add -n=git-fork
+	choco pin add -n=microsoftazurestorageexplorer
 }
 
 Function Install-NodeJsAndNpmPackages {
@@ -489,6 +471,19 @@ Function Install-Docker {
 	choco pin add -n=docker-compose
 }
 
+Function SetUp-PowerShell {
+	Write-BoxstarterMessage "####################################"
+	Write-BoxstarterMessage "# PowerShell"
+	Write-BoxstarterMessage "####################################"
+
+	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+	Set-PSRepository -Name PSGallery -InstallationPolicy 'Trusted'
+	Install-Module -Name 'posh-git' -Scope AllUsers
+	Install-Module -Name 'oh-my-posh' -Scope AllUsers
+	Install-Module -Name 'AzureRM' -Scope AllUsers
+	Install-Module -Name 'Azure' -Scope AllUsers -AllowClobber
+}
+
 Write-BoxstarterMessage "Starting setup"
 
 Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'DownloadScriptContent' -SkipMessage 'Download Script Content is already finished'
@@ -501,8 +496,6 @@ Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName '
 Use-Checkpoint -Function ${Function:Set-BaseSettings} -CheckpointName 'BaseSettings' -SkipMessage 'Base settings are already configured'
 
 Use-Checkpoint -Function ${Function:Set-PowerSettings} -CheckpointName 'PowerSettings' -SkipMessage 'Power settings are already configured'
-
-Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
 
 Write-BoxstarterMessage "Starting installs"
 
@@ -522,8 +515,6 @@ Use-Checkpoint -Function ${Function:Install-VisualStudioCode} -CheckpointName 'V
 
 Use-Checkpoint -Function ${Function:Install-VSCodeExtensions} -CheckpointName 'VSCodeExtensions' -SkipMessage 'Visual Studio Code Extensions are already installed'
 
-Use-Checkpoint -Function ${Function:Install-AzureTools} -CheckpointName 'AzureTools' -SkipMessage 'Azure Tools are already installed'
-
 Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
 
 Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
@@ -533,6 +524,8 @@ Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointNam
 Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
 
 Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
+
+Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
 
 # install chocolatey as last choco package
 choco install chocolatey --cacheLocation $chocoCachePath --limitoutput
