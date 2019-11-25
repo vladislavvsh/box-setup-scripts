@@ -313,9 +313,9 @@ Function Install-VisualStudio2019Extensions {
 	Write-BoxstarterMessage "# Visual Studio 2019 Extensions"
 	Write-BoxstarterMessage "####################################"
 
-	choco install resharper-platform --cacheLocation $chocoCachePath --limitoutput
+	choco install resharper-ultimate-all --pre --cacheLocation $chocoCachePath --limitoutput
 
-	choco pin add -n=resharper-platform
+	choco pin add -n=resharper-ultimate-all
 
 	Add-Type -Path "$contentPath\libs\Microsoft.mshtml.dll"
 
