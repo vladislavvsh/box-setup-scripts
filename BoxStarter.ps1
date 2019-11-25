@@ -529,7 +529,8 @@ Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-Pow
 
 # install chocolatey as last choco package
 choco install chocolatey --cacheLocation $chocoCachePath --limitoutput
-choco install choco-upgrade-all-at --params "'/DAILY:yes /TIME:14:00 /ABORTTIME:16:00'"
+choco install choco-upgrade-all-at --params "'/DAILY:yes /TIME:14:00 /ABORTTIME:16:00'" --cacheLocation $chocoCachePath --limitoutput
+choco install choco-cleaner --cacheLocation $chocoCachePath --limitoutput
 
 # re-enable chocolatey default confirmation behaviour
 Use-Checkpoint -Function ${Function:Disable-ChocolateyFeatures} -CheckpointName 'DisableChocolatey' -SkipMessage 'Chocolatey features already configured'
