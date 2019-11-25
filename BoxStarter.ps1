@@ -337,7 +337,6 @@ Function Install-VisualStudio2019Extensions {
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "josefpihrt.Roslynator2019"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SonarSource.SonarLintforVisualStudio2019"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "TomEnglert.ResXManager"
-	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SergeyVlasov.VisualCommander"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "PavelSamokha.TargetFrameworkMigrator"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "NikolayBalakin.Outputenhancer"
 }
