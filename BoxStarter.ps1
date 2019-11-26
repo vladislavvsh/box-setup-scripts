@@ -17,6 +17,9 @@
 #	$cred = Get-Credential
 # 	Install-BoxstarterPackage -PackageName https://raw.githubusercontent.com/vladislavvsh/box-setup-scripts/master/BoxStarter.ps1 -Credential $cred -Force
 #
+# TODO:
+# 1. May fail Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.ProductivityPowerPack2017"
+# 2. KeePass plugin https://github.com/iSnackyCracky/KeePassRDP/releases
 ###############################################################################
 
 $Boxstarter.RebootOk = $true # Allow reboots
@@ -293,9 +296,7 @@ Function Install-KeePass {
 	choco install keepass-plugin-keeagent --cacheLocation $chocoCachePath --limitoutput
 	choco install keepass-plugin-keeanywhere --cacheLocation $chocoCachePath --limitoutput
 	choco install keepass-keepasshttp --cacheLocation $chocoCachePath --limitoutput
-	choco install keepass-plugin-rdp --cacheLocation $chocoCachePath --limitoutput
 	choco install keepass-rpc --cacheLocation $chocoCachePath --limitoutput
-	choco install keepass-plugin-enhancedentryview --cacheLocation $chocoCachePath --limitoutput
 	choco install keepass-plugin-winhello --cacheLocation $chocoCachePath --limitoutput
 }
 
@@ -337,7 +338,6 @@ Function Install-VisualStudio2019Extensions {
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "josefpihrt.Roslynator2019"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SonarSource.SonarLintforVisualStudio2019"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "TomEnglert.ResXManager"
-	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "PavelSamokha.TargetFrameworkMigrator"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "NikolayBalakin.Outputenhancer"
 }
 
