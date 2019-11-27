@@ -244,6 +244,7 @@ Function Install-CoreApps {
 	choco install microsoft-windows-terminal --cacheLocation $chocoCachePath --limitoutput
 	choco install 7zip.install --cacheLocation $chocoCachePath --limitoutput
 	choco install vlc --cacheLocation $chocoCachePath --limitoutput
+	choco install fsviewer --cacheLocation $chocoCachePath --limitoutput
 	choco install paint.net --cacheLocation $chocoCachePath --limitoutput
 	choco install adobereader --cacheLocation $chocoCachePath --limitoutput
 	choco install dropbox --cacheLocation $chocoCachePath --limitoutput
