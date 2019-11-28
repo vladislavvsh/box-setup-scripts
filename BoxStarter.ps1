@@ -20,6 +20,7 @@
 # TODO:
 # 1. May fail Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.ProductivityPowerPack2017"
 # 2. KeePass plugin https://github.com/iSnackyCracky/KeePassRDP/releases
+# 3. choco install outlookcaldav
 ###############################################################################
 
 $Boxstarter.RebootOk = $true # Allow reboots
@@ -334,7 +335,6 @@ Function Install-VisualStudio2019Extensions {
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.PowerCommandsforVisualStudio"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.ProductivityPowerPack2017"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.VisualStudio2019ColorThemeEditor"
-	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "EWoodruff.VisualStudioSpellCheckerVS2017andLater"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "TomasRestrepo.Viasfora"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "josefpihrt.Roslynator2019"
 	Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "SonarSource.SonarLintforVisualStudio2019"
