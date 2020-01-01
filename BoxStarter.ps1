@@ -248,6 +248,7 @@ Function Install-CoreApps {
 	choco install fsviewer --cacheLocation $chocoCachePath --limitoutput
 	choco install paint.net --cacheLocation $chocoCachePath --limitoutput
 	choco install adobereader --cacheLocation $chocoCachePath --limitoutput
+	choco install sumatrapdf --cacheLocation $chocoCachePath --limitoutput
 	choco install dropbox --cacheLocation $chocoCachePath --limitoutput
 	choco install sharex --cacheLocation $chocoCachePath --limitoutput
 	choco install ffmpeg --cacheLocation $chocoCachePath --limitoutput
