@@ -382,6 +382,8 @@ Function Install-VSCodeExtensions {
 	code --install-extension shardulm94.trailing-spaces
 	code --install-extension dbaeumer.vscode-eslint
 	code --install-extension ms-vscode.vscode-typescript-tslint-plugin
+	code --install-extension esbenp.prettier-vscode
+	code --install-extension eg2.vscode-npm-script
 }
 
 Function Install-Git {
