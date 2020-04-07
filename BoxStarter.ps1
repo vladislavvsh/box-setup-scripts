@@ -20,7 +20,6 @@
 # TODO:
 # 1. May fail Vs2019DownloadAndInstallExtWithCheckpoint -PackageName "VisualStudioPlatformTeam.ProductivityPowerPack2017"
 # 2. KeePass plugin https://github.com/iSnackyCracky/KeePassRDP/releases
-# 3. choco install outlookcaldav
 ###############################################################################
 
 $Boxstarter.RebootOk = $true # Allow reboots
@@ -242,10 +241,10 @@ Function Install-CoreApps {
 	Write-BoxstarterMessage "####################################"
 
 	choco install chocolateygui --cacheLocation $chocoCachePath --limitoutput
+	choco install shutup10 --cacheLocation $chocoCachePath --limitoutput
 	choco install microsoft-windows-terminal --cacheLocation $chocoCachePath --limitoutput
 	choco install 7zip.install --cacheLocation $chocoCachePath --limitoutput
 	choco install vlc --cacheLocation $chocoCachePath --limitoutput
-	choco install fsviewer --cacheLocation $chocoCachePath --limitoutput
 	choco install paint.net --cacheLocation $chocoCachePath --limitoutput
 	choco install adobereader --cacheLocation $chocoCachePath --limitoutput
 	choco install sumatrapdf --cacheLocation $chocoCachePath --limitoutput
@@ -256,12 +255,7 @@ Function Install-CoreApps {
 	choco install notepadplusplus.install --cacheLocation $chocoCachePath --limitoutput
 	choco install caffeine --cacheLocation $chocoCachePath --limitoutput
 	choco install boostnote --cacheLocation $chocoCachePath --limitoutput
-
-	choco pin add -n=vlc
-	choco pin add -n="paint.net"
-	choco pin add -n=dropbox
-	choco pin add -n=sharex
-	choco pin add -n="notepadplusplus.install"
+	choco install quicklook --cacheLocation $chocoCachePath --limitoutput
 }
 
 Function Install-Browsers {
@@ -273,7 +267,6 @@ Function Install-Browsers {
 	choco install tor-browser --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=googlechrome
-	choco pin add -n=tor-browser
 }
 
 Function Install-Messengers {
@@ -287,7 +280,6 @@ Function Install-Messengers {
 	choco install whatsapp --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=skype
-	choco pin add -n="telegram.install"
 }
 
 Function Install-KeePass {
@@ -391,14 +383,11 @@ Function Install-Git {
 	Write-BoxstarterMessage "# Git"
 	Write-BoxstarterMessage "####################################"
 
-	#git.install?
 	choco install git --params="/GitOnlyOnPath /WindowsTerminal" --cacheLocation $chocoCachePath --limitoutput
 	choco install git-credential-manager-for-windows --cacheLocation $chocoCachePath --limitoutput
 
-	#choco install sourcetree --cacheLocation $chocoCachePath --limitoutput
 	choco install git-fork --cacheLocation $chocoCachePath --limitoutput
 
-	#choco pin add -n=sourcetree
 	choco pin add -n=git-fork
 }
 
@@ -420,11 +409,6 @@ Function Install-CoreDevApps {
 	choco install openvpn --params "/SELECT_LAUNCH=0" --cacheLocation $chocoCachePath --limitoutput
 	choco install azure-cli --cacheLocation $chocoCachePath --limitoutput
 	choco install microsoftazurestorageexplorer --cacheLocation $chocoCachePath --limitoutput
-
-	choco pin add -n=fiddler
-	choco pin add -n=beyondcompare
-	choco pin add -n=sql-server-management-studio
-	choco pin add -n=microsoftazurestorageexplorer
 }
 
 Function Install-NodeJsAndNpmPackages {
