@@ -22,10 +22,7 @@
 # 2. KeePass plugin https://github.com/iSnackyCracky/KeePassRDP/releases
 ###############################################################################
 
-param (
-	[string]
-	$Env = "office"
- )
+$Env = [Environment]::GetEnvironmentVariable("Env", "Process")
 
 $Boxstarter.RebootOk = $true # Allow reboots
 $Boxstarter.NoPassword = $false # machine has login password
