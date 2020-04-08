@@ -22,11 +22,17 @@
 # 2. KeePass plugin https://github.com/iSnackyCracky/KeePassRDP/releases
 ###############################################################################
 
+param (
+	[Parameter(Mandatory=$true)]
+	[string]
+	$Env = "office"
+ )
+
 $Boxstarter.RebootOk = $true # Allow reboots
 $Boxstarter.NoPassword = $false # machine has login password
 $Boxstarter.AutoLogin = $true # Encrypt and temp store password for auto-logins after reboot
 
-$checkpointPrefix = 'BoxStarter:Checkpoint:'
+$checkpointPrefix = "BoxStarter:Checkpoint:"
 
 # Workaround for nested chocolatey folders resulting in path too long error
 $chocoCachePath = "C:\Temp"
@@ -107,7 +113,7 @@ Function Use-Checkpoint {
     }
 }
 
-function Update-Path {
+Function Update-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
@@ -223,7 +229,7 @@ Function Set-PowerSettings {
 	Write-BoxstarterMessage "####################################"
 
 	# Turn off hibernation
-	# powercfg /H OFF
+	powercfg /H OFF
 
 	# Change Power saving options (ac=plugged in dc=battery)
 	powercfg -change -monitor-timeout-ac 15
@@ -340,7 +346,6 @@ Function Install-VisualStudioCode  {
 	Write-BoxstarterMessage "# Visual Studio Code"
 	Write-BoxstarterMessage "####################################"
 
-	#vscode.install?
 	choco install vscode --params="/NoDesktopIcon" --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=vscode
@@ -389,6 +394,9 @@ Function Install-Git {
 	choco install git-fork --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=git-fork
+
+	# set HOME to user profile for git
+	[Environment]::SetEnvironmentVariable("HOME", $env:UserProfile, "User")
 }
 
 Function Install-CoreDevApps {
@@ -477,7 +485,6 @@ Use-Checkpoint -Function ${Function:DownloadScriptContent} -CheckpointName 'Down
 
 Use-Checkpoint -Function ${Function:WindowsUpdate} -CheckpointName 'FirstWindowsUpdate' -SkipMessage 'First WindowsUpdate os already finished'
 
-# disable chocolatey default confirmation behaviour (no need for --yes)
 Use-Checkpoint -Function ${Function:Enable-ChocolateyFeatures} -CheckpointName 'InitChoco' -SkipMessage 'Chocolatey features are already configured'
 
 Use-Checkpoint -Function ${Function:Set-BaseSettings} -CheckpointName 'BaseSettings' -SkipMessage 'Base settings are already configured'
@@ -494,25 +501,27 @@ Use-Checkpoint -Function ${Function:Install-Messengers} -CheckpointName 'Messeng
 
 Use-Checkpoint -Function ${Function:Install-KeePass} -CheckpointName 'KeePass' -SkipMessage 'KeePass is already installed'
 
-Use-Checkpoint -Function ${Function:Install-VisualStudio2019} -CheckpointName 'VisualStudio2019' -SkipMessage 'Visual Studio 2019 is already installed'
+if ($Env -eq "dev") {
+	Use-Checkpoint -Function ${Function:Install-VisualStudio2019} -CheckpointName 'VisualStudio2019' -SkipMessage 'Visual Studio 2019 is already installed'
 
-Use-Checkpoint -Function ${Function:Install-VisualStudio2019Extensions} -CheckpointName 'VisualStudio2019Extensions' -SkipMessage 'Visual Studio 2019 Extensions are already installed'
+	Use-Checkpoint -Function ${Function:Install-VisualStudio2019Extensions} -CheckpointName 'VisualStudio2019Extensions' -SkipMessage 'Visual Studio 2019 Extensions are already installed'
 
-Use-Checkpoint -Function ${Function:Install-VisualStudioCode} -CheckpointName 'VisualStudioCode' -SkipMessage 'Visual Studio Code is already installed'
+	Use-Checkpoint -Function ${Function:Install-VisualStudioCode} -CheckpointName 'VisualStudioCode' -SkipMessage 'Visual Studio Code is already installed'
 
-Use-Checkpoint -Function ${Function:Install-VSCodeExtensions} -CheckpointName 'VSCodeExtensions' -SkipMessage 'Visual Studio Code Extensions are already installed'
+	Use-Checkpoint -Function ${Function:Install-VSCodeExtensions} -CheckpointName 'VSCodeExtensions' -SkipMessage 'Visual Studio Code Extensions are already installed'
 
-Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
+	Use-Checkpoint -Function ${Function:Install-Git} -CheckpointName 'Git' -SkipMessage 'Git is already installed'
 
-Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
+	Use-Checkpoint -Function ${Function:Install-CoreDevApps} -CheckpointName 'CoreDevApps' -SkipMessage 'Core Dev Apps are already installed'
 
-Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointName 'NodeJsAndNpmPackages' -SkipMessage 'NodeJs And Npm Packages are already installed'
+	Use-Checkpoint -Function ${Function:Install-NodeJsAndNpmPackages} -CheckpointName 'NodeJsAndNpmPackages' -SkipMessage 'NodeJs And Npm Packages are already installed'
 
-Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
+	Use-Checkpoint -Function ${Function:Install-DevFeatures} -CheckpointName 'DevFeatures' -SkipMessage 'Dev Features are already installed'
 
-Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
+	Use-Checkpoint -Function ${Function:Install-Docker} -CheckpointName 'Docker' -SkipMessage 'Docker is already installed'
 
-Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
+	Use-Checkpoint -Function ${Function:SetUp-PowerShell} -CheckpointName 'SetUp-PowerShell' -SkipMessage 'PowerShell is already configured'
+}
 
 # install chocolatey as last choco package
 choco install chocolatey --cacheLocation $chocoCachePath --limitoutput
@@ -526,9 +535,6 @@ if (Test-PendingReboot) { Invoke-Reboot }
 
 # reload path environment variable
 Update-Path
-
-# set HOME to user profile for git
-[Environment]::SetEnvironmentVariable("HOME", $env:UserProfile, "User")
 
 # rerun windows update after we have installed everything
 Write-BoxstarterMessage "Windows update..."
