@@ -257,7 +257,6 @@ Function Install-CoreApps {
 	choco install notepadplusplus.install --cacheLocation $chocoCachePath --limitoutput
 	choco install caffeine --cacheLocation $chocoCachePath --limitoutput
 	choco install boostnote --cacheLocation $chocoCachePath --limitoutput
-	choco install quicklook --cacheLocation $chocoCachePath --limitoutput
 }
 
 Function Install-Browsers {
@@ -280,6 +279,7 @@ Function Install-Messengers {
 	choco install slack --cacheLocation $chocoCachePath --limitoutput
 	choco install telegram.install --cacheLocation $chocoCachePath --limitoutput
 	choco install whatsapp --cacheLocation $chocoCachePath --limitoutput
+	choco install zoom --cacheLocation $chocoCachePath --limitoutput
 
 	choco pin add -n=skype
 }
